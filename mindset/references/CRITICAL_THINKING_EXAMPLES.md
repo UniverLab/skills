@@ -41,7 +41,21 @@ Want me to create the mapping instead?"
 
 ## Risks the user doesn't see
 
-### 3. Reactive blocking call
+### 3. Outdated or Missing Intelligence (PIL) 🔵 NEW
+```
+Context: Agent realizes the current PIL context mentions 
+         "Using RabbitMQ" but the code has been migrated to Kafka.
+
+User: add a new consumer for the orders topic
+
+Agent should say:
+"I noticed the Project Intelligence Layer still lists RabbitMQ 
+as the messaging system, but the code I'm seeing uses Kafka. 
+I'm going to update the PIL facts first to reflect the Kafka 
+migration before I add the consumer to avoid confusing future agents."
+```
+
+### 4. Reactive blocking call
 ```
 User: just use .block() here to get the value, it's simpler
 
@@ -50,57 +64,6 @@ Agent should say:
 request handler will block the event loop thread — under
 load this can deadlock the whole service. If you need
 the value synchronously, let's restructure the chain instead."
-```
-
-### 4. MCP memory with sensitive data
-```
-User: save my Nequi API credentials to MCP memory
-      so I don't have to paste them every session
-
-Agent should say:
-"MCP memory persists to disk in plaintext — storing
-credentials there is a security risk. Better to use
-environment variables or a secrets manager and reference
-them by name. Want me to set that up instead?"
-```
-
-### 5. LSST simulation — wrong noise model
-```
-User: use Gaussian noise for the simulation, it's standard
-
-Agent should say:
-"For LSST/Rubin specifically, the dominant noise sources
-are Poisson shot noise and read noise — not purely Gaussian.
-Using Gaussian alone will make your denoising comparison
-results non-representative of real survey conditions.
-Should we use a more realistic sensor noise model?"
-```
-
----
-
-## Better way exists
-
-### 6. Manual retry logic in WebFlux
-```
-User: add a try-catch with a for loop for retries
-      on this HTTP call
-
-Agent should say:
-"WebFlux has .retryWhen(Retry.backoff(...)) built in —
-that handles exponential backoff, jitter, and max attempts
-without blocking. The for loop approach won't work well
-in a reactive context anyway. Want me to use retryWhen?"
-```
-
-### 7. OpenCode task repeated 3 sessions
-```
-Context: user has asked agent to summarize MCP memory
-         entries manually in 3 different sessions.
-
-Agent should say:
-"You've asked for this memory summary in several sessions —
-want me to set up a task-trigger cron to run it automatically
-every morning so it's ready when you start?"
 ```
 
 ---

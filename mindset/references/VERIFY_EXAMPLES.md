@@ -84,6 +84,24 @@ Agent should:
 3. Report: "Found payment handling in 3 files — verified by reading context"
 ```
 
+### 7. Multi-agent sync & Intelligence Layer verification
+```
+User: update the deployment workflow in a shared repo
+
+Agent should:
+1. Pull context: Use intelligence_get_context(scope="light") to see missions and PIL state.
+2. Continue or Start: If a mission is inconclusive, ask to continue or define new.
+3. Read the current sync context for the workdir.
+4. Declare intent before making high-impact changes.
+5. Verify no conflicting mission is active.
+6. Upsert findings: If deployment logic is complex, register it as a PIL fact.
+7. Shadow Summary (on F4): Ensure an outcome is reported via intelligence_upsert.
+8. Verify final state before claiming completion.
+
+Agent should NOT make shared changes in silence or fail to document 
+new architectural facts in the PIL.
+```
+
 ---
 
 ## The Rule in One Line

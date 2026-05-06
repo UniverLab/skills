@@ -143,4 +143,4 @@ Jheison Martinez ([@JheisonMB](https://github.com/JheisonMB))
 
 ## Version
 
-1.0 (2026-04-06)
+1.2 (2026-05-05)

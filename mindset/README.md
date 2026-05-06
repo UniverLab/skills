@@ -96,4 +96,4 @@ Jheison Martinez ([@JheisonMB](https://github.com/JheisonMB))
 
 ## Version
 
-2.3 (2026-03-18)
+2.5 (2026-05-05)

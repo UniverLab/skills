@@ -8,9 +8,9 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "1.2"
   category: agent-behavior
-  last_updated: "2026-04-06"
+  last_updated: "2026-05-05"
 ---
 
 # Coder: Production-Grade Coding
@@ -18,6 +18,18 @@ metadata:
 Write code as if it ships to production today. Every function, class, and module should be clean, intentional, and maintainable.
 
 This skill complements [mindset](https://skills.sh/jheisonmb/skills/mindset) — mindset handles agent behavior (verify, think, security, resourcefulness), coder handles code quality and design decisions.
+
+---
+
+## Refactor Philosophy: Logical Checkpoint Goals 🔵 UPDATED
+
+Adopt a milestone-based workflow. Instead of making arbitrary small changes, focus on achieving logical, functional goals that move the architecture forward.
+
+1.  **Define the Milestone**: Establish a clear, logical goal (e.g., "Split Service layer into Auth and Payment providers").
+2.  **Functional Execution**: Perform all necessary modifications across multiple files to reach the milestone.
+3.  **High-Frequency Verification**: Run tests, linters, or build commands after completing the logic required for the milestone.
+4.  **Atomic Milestone Commit**: Commit the entire functional change once verified. A commit should represent a safe, compiling, and passing state of the application.
+5.  **No "Forever Broken" States**: If reaching a milestone takes too long without passing tests, revert and break the milestone into two smaller, self-contained functional goals.
 
 ---
 
