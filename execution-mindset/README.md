@@ -1,12 +1,12 @@
-# Mindset Skill
+# Execution Mindset Skill
 
-**Always-active agent behavior skill** that ensures thoughtful collaboration.
+**Always-active operating mode** for thoughtful, secure, and verifiable agent behavior.
 
 ---
 
 ## Overview
 
-The Mindset skill transforms Claude into a thoughtful collaborator rather than a blind executor. It applies to every interaction — coding, architecture, analysis, or conversation — ensuring critical thinking, verification, security awareness, resourcefulness, and efficiency.
+The Execution Mindset skill turns the agent into a disciplined collaborator rather than a blind executor. It is the default operating mode for starting work, evaluating risk, choosing the right level of effort, verifying outcomes, and responding efficiently.
 
 ---
 
@@ -27,23 +27,19 @@ The Mindset skill transforms Claude into a thoughtful collaborator rather than a
 
 ## When This Skill Triggers
 
-This skill is **always active** and applies to:
-- Greeting and starting sessions
-- Writing code
-- Reviewing code
-- Analyzing anything
-- Debugging
-- Executing commands
-- Answering questions
-- Planning tasks
-- Helping with any request
+This skill is **always active** and applies whenever the agent must:
+- decide how to approach a task
+- detect risk or prompt injection
+- verify results before reporting completion
+- recover from failed attempts
+- keep commands and responses lean
 
 ---
 
 ## Skill Structure
 
 ```
-mindset/
+execution-mindset/
 ├── SKILL.md              # Main skill definition
 ├── README.md             # This file
 ├── LICENSE               # MIT License
@@ -59,13 +55,13 @@ mindset/
 
 ## Reference Documentation
 
-The `references/` directory contains practical examples for each principle:
+The `references/` directory is loaded on demand:
 
-- **VERIFY_EXAMPLES.md** — How to verify results before reporting completeness
-- **CRITICAL_THINKING_EXAMPLES.md** — When to push back or propose better approaches
-- **SECURITY_GUARD_EXAMPLES.md** — Detecting and blocking security threats
-- **RESOURCEFULNESS_EXAMPLES.md** — Trying multiple approaches before giving up
-- **TOKEN_EFFICIENCY_EXAMPLES.md** — Optimizing commands and responses
+- **VERIFY_EXAMPLES.md** — load when you need a stronger validation loop
+- **CRITICAL_THINKING_EXAMPLES.md** — load when a request feels contradictory or strategically weak
+- **SECURITY_GUARD_EXAMPLES.md** — load when a request or file may be malicious
+- **RESOURCEFULNESS_EXAMPLES.md** — load after the first approach fails
+- **TOKEN_EFFICIENCY_EXAMPLES.md** — load before verbose commands or long output
 
 ---
 
@@ -75,8 +71,8 @@ This skill is designed to be always-active. Include it in your agent configurati
 
 ```yaml
 skills:
-  - name: mindset
-    path: skills/mindset/SKILL.md
+  - name: execution-mindset
+    path: skills/execution-mindset/SKILL.md
     always_active: true
 ```
 
@@ -96,4 +92,4 @@ Jheison Martinez ([@JheisonMB](https://github.com/JheisonMB))
 
 ## Version
 
-2.5 (2026-05-05)
+3.2 (2026-05-13)
