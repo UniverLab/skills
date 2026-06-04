@@ -33,6 +33,32 @@ git clone https://github.com/UniverLab/skills.git
 git submodule add https://github.com/UniverLab/skills.git skills
 ```
 
+### texforge
+CLI para compilar documentos LaTeX a PDF sin TeX Live, MiKTeX ni dependencias externas. Usa tectonic como motor interno.
+
+```bash
+# Instalación manual
+npx skills add https://github.com/UniverLab/skills --skill texforge
+
+# O copiar directamente
+cp -r skills/texforge ~/.agents/skills/
+```
+
+> **Nota:** Requiere `texforge` en PATH. Se instala automáticamente durante el setup de Canopy solo si el binario está disponible.
+
+### cadforge
+CLI para Architecture as Code en 2D CAD. Compila archivos `.cf` (TOML) a DXF con preview PNG.
+
+```bash
+# Instalación manual
+npx skills add https://github.com/UniverLab/skills --skill cadforge
+
+# O copiar directamente
+cp -r skills/cadforge ~/.agents/skills/
+```
+
+> **Nota:** Requiere `cadforge` en PATH. Se instala automáticamente durante el setup de Canopy solo si el binario está disponible.
+
 ---
 
 ## 📦 Estructura
