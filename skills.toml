@@ -1,0 +1,20 @@
+# UniverLab Skills Registry
+#
+# Skills without `requires` are always installed during Canopy setup.
+# Skills with `requires` are only installed if the binary is found in PATH.
+#
+# Format:
+#   [skills.<name>]
+#   requires = "<binary>"  # optional
+
+[skills.code-engineering]
+
+[skills.execution-mindset]
+
+[skills.workflow-design]
+
+[skills.texforge]
+requires = "texforge"
+
+[skills.cadforge]
+requires = "cadforge"
