@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.2"
+  version: "1.3"
   framework: OpenCode
   category: workflow-orchestration
-  last_updated: "2026-05-13"
+  last_updated: "2026-05-23"
 ---
 
 # Workflow Design
@@ -148,15 +148,26 @@ Use the Canopy workflow tools, in order when creating:
 2. `workflow_add_spec`
 3. `workflow_add_node`
 4. `workflow_add_edge`
-5. `workflow_get`
+5. `workflow_get` to verify the final shape
 
 When refining existing workflows, inspect with `workflow_list` / `workflow_get` first.
 
-The current toolset does **not** provide in-place `workflow_update*` mutations. Use one of these safe strategies instead:
+The toolset supports in-place mutations:
 
-1. extend the existing workflow with additional specs, nodes, or edges when the desired change is append-only
-2. create a replacement workflow when the graph must be reshaped in ways the tools cannot mutate directly
-3. summarize the migration path clearly so the user understands whether the old workflow stays in place
+- `workflow_update` — rename, redescription, or move workdir
+- `workflow_update_spec` — rename, change description, reorder, toggle parallelizable
+- `workflow_update_node` — rename, change kind, replace config, reposition
+- `workflow_update_edge` — change routing condition (pass/fail/always)
+
+Use these when the change is surgical. Use `workflow_create` + rebuild when the graph shape changes drastically.
+
+Runtime tools:
+
+- `workflow_run` — start execution
+- `workflow_pause` — halt after current node finishes
+- `workflow_continue` — resume with retry_current_node or skip_next_spec
+- `workflow_complete_node` — report pass/fail from inside a node
+- `workflow_report_blocker` — pause because a node needs human intervention
 
 Only call `workflow_run` after the user has the chance to review the graph, unless they explicitly asked to launch it immediately.
 

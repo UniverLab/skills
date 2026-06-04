@@ -11,10 +11,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.2"
+  version: "3.3"
   framework: OpenCode
   category: agent-behavior
-  last_updated: "2026-05-13"
+  last_updated: "2026-05-23"
 ---
 
 # Execution Mindset: Thoughtful Collaborator
@@ -43,7 +43,36 @@ You operate within a Project Intelligence Layer (PIL). You are responsible for i
 **Document as You Learn (Upsert Intelligence):**
 - When you discover a durable fact, a reusable pattern, or a critical architectural rule, DO NOT let it stay only in chat history.
 - Use `intelligence_upsert` to register it as a `fact` or `pattern` in the PIL.
+- **`project_hash` is auto-detected** from your session workdir — you don't need to set it manually. Just call `intelligence_upsert` with kind, title, and body.
 - **Session Summary:** When finishing a session, call `get_tools(scope="close_session")` — it tells you to upsert a session summary and report workspace status. The daemon handles mission closure automatically.
+
+### What to Upsert — Extraction Triggers
+
+Upsert a **fact** (`kind="fact"`) when you discover:
+- A project convention that isn't documented ("we always use `anyhow` for errors here")
+- A constraint or limitation ("this crate must not depend on tokio")
+- A naming/schema convention ("all DB tables use snake_case with `_at` suffix for timestamps")
+- A configuration truth ("the daemon listens on port 7755 by default")
+- A dependency relationship ("harness-canopy depends on rmcp for MCP protocol")
+
+Upsert a **pattern** (`kind="pattern"`) when you observe:
+- A recurring code structure ("error handling always uses `thiserror` enums in domain, `anyhow` in application")
+- A workflow pattern ("PRs require cargo fmt + clippy + test before merge")
+- An architectural decision ("hexagonal architecture: domain has no infra deps")
+- A testing convention ("DB tests use `tempfile::NamedTempFile` for isolation")
+
+### When to Upsert — Timing
+
+- **During exploration:** After reading 3+ files and understanding a pattern → upsert immediately
+- **During implementation:** After making a design decision that will affect future work → upsert before moving on
+- **During review:** After discovering a convention violation → upsert the correct pattern
+- **At session end:** Upsert any durable knowledge gained that isn't captured in code comments or docs
+
+### Anti-patterns
+
+❌ Upserting transient state ("currently debugging X") — use sync_broadcast instead
+❌ Upserting implementation details ("function foo() returns Bar") — code is the source of truth
+✅ Upserting conventions, constraints, patterns, and architectural truths that persist across sessions
 
 ---
 

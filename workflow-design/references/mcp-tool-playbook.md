@@ -21,14 +21,30 @@ Recommended tool order for creating and refining Canopy workflows with the curre
 1. `workflow_list` or `workflow_get`
 2. inspect current specs, nodes, edges, and statuses
 3. choose the lowest-risk path:
-   - extend the existing workflow with `workflow_add_spec`, `workflow_add_node`, or `workflow_add_edge` when the change is append-only
-   - recreate a replacement workflow when the graph shape must change in ways the current toolset cannot mutate directly
+   - **surgical mutation** with `workflow_update`, `workflow_update_spec`, `workflow_update_node`, or `workflow_update_edge` for targeted changes
+   - **extend** with `workflow_add_spec`, `workflow_add_node`, or `workflow_add_edge` when the change is additive
+   - **recreate** when the graph shape must change drastically
 4. `workflow_get` again
 5. summarize the effective diff or migration path
+
+### Available Mutation Tools
+
+| Tool | What it changes |
+|---|---|
+| `workflow_update` | name, description, workdir |
+| `workflow_update_spec` | name, description, position, parallelizable |
+| `workflow_update_node` | name, kind, config, position |
+| `workflow_update_edge` | condition (pass/fail/always) |
 
 ---
 
 ## Mutation Heuristics
+
+### Prefer surgical mutation when:
+
+- a single node, spec, or edge needs a config tweak or rename
+- the graph topology stays the same
+- you want to preserve run history tied to the workflow ID
 
 ### Prefer extend-in-place when:
 
@@ -50,3 +66,16 @@ Recommended tool order for creating and refining Canopy workflows with the curre
 - do not assume one CLI or one model provider
 - do not insert commit nodes unless the user explicitly allows workflow-managed commits
 - preserve strong verification nodes for code workflows
+- use `workflow_report_blocker` when a node needs human input — do not hard-fail silently
+- use `workflow_pause` + `workflow_continue` for graceful retry/skip flows
+
+## Runtime Lifecycle
+
+| Action | Tool |
+|---|---|
+| Start execution | `workflow_run` |
+| Halt after current node | `workflow_pause` |
+| Retry current node | `workflow_continue(action="retry_current_node")` |
+| Skip to next spec | `workflow_continue(action="skip_next_spec")` |
+| Node reports success/failure | `workflow_complete_node` |
+| Node blocked, needs human | `workflow_report_blocker` |
