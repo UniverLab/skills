@@ -151,6 +151,19 @@ digraph G {
 
 Mismas opciones que mermaid. Renderizado via `layout-rs` — Rust puro, sin binario `dot` externo.
 
+### Diagramas embebidos — D2
+
+```latex
+\begin{d2}[caption=Arquitectura, width=0.7\linewidth]
+user -> api: request
+api -> db: query
+db -> api: rows
+api -> user: response
+\end{d2}
+```
+
+Sintaxis [D2](https://d2lang.com) (contenedores, shapes, `sql_table`, etc.). Mismas opciones que mermaid/graphviz. Renderizado via `d2-little` — Rust puro, sin binario `d2` externo ni Node.js.
+
 ### `texforge fmt [--check]`
 
 ```bash

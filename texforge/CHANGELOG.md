@@ -3,6 +3,7 @@
 ## Version 1.5 (2026-06-11)
 
 ### Added
+- Diagramas D2 embebidos en `.tex` con `\begin{d2}...\end{d2}` — mismas opciones que mermaid/graphviz, renderizado en Rust puro (`d2-little`)
 - `texforge config` — documentado por primera vez (wizard, `list`, get/set; claves `name`, `email`, `institution`, `language`)
 - `texforge build --watch` — documentado en el cuerpo del skill con el flag correcto `--delay`
 
