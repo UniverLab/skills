@@ -1,5 +1,18 @@
 # Changelog - texforge Skill
 
+## Version 1.5 (2026-06-11)
+
+### Added
+- `texforge config` — documentado por primera vez (wizard, `list`, get/set; claves `name`, `email`, `institution`, `language`)
+- `texforge build --watch` — documentado en el cuerpo del skill con el flag correcto `--delay`
+
+### Fixed
+- URLs de instalación rotas — apuntaban a `JheisonMB/texforge/main/install.{sh,ps1}` (404); ahora `UniverLab/texforge/main/scripts/install.{sh,ps1}`
+- Referencias de repos en README actualizadas de `JheisonMB` a `UniverLab`
+
+### Changed
+- La lista de templates ya no se hardcodea — el skill instruye consultar `texforge template list --all` como fuente de verdad
+
 ## Version 1.4 (2026-04-03)
 
 ### Changed

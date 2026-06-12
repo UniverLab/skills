@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
+  version: "1.5"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-04-03"
+  last_updated: "2026-06-11"
 ---
 
 # texforge CLI
@@ -24,12 +24,12 @@ CLI para compilar LaTeX a PDF. Usa [tectonic](https://tectonic-typesetting.githu
 
 ```bash
 # Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/JheisonMB/texforge/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/UniverLab/texforge/main/scripts/install.sh | sh
 ```
 
 ```powershell
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/JheisonMB/texforge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/UniverLab/texforge/main/scripts/install.ps1 | iex
 ```
 
 ```bash
@@ -97,6 +97,15 @@ texforge build
 Compila `main.tex` → PDF en `build/`. Los errores se muestran con archivo, línea y sugerencia — nunca logs crudos de tectonic.
 
 Antes de compilar, intercepta entornos de diagramas embebidos, los renderiza, y trabaja sobre copias en `build/` — los `.tex` originales nunca se modifican.
+
+#### `texforge build --watch`
+
+```bash
+texforge build --watch             # recompila al guardar (debounce 2s por defecto)
+texforge build --watch --delay 5   # debounce de 5s
+```
+
+Sesión persistente con timer en vivo, contador de builds y solo el último resultado (sin acumular logs). Salida coloreada; `Ctrl+C` para salir.
 
 ### `texforge clean`
 
@@ -168,6 +177,19 @@ ERROR [main.tex:12]
   \cite{smith2020} — key not found in .bib
 ```
 
+### `texforge config`
+
+Gestiona la configuración global (`~/.texforge/`), usada para rellenar placeholders al crear proyectos (autor, institución, etc.).
+
+```bash
+texforge config                      # wizard interactivo
+texforge config list                 # muestra toda la configuración actual
+texforge config name                 # muestra el valor de una clave
+texforge config name "Jane Doe"      # asigna un valor
+```
+
+Claves disponibles: `name`, `email`, `institution`, `language`.
+
 ### `texforge template`
 
 ```bash
@@ -178,15 +200,15 @@ texforge template remove apa-general
 texforge template validate apa-general
 ```
 
-Templates disponibles:
+Para conocer los templates disponibles, **siempre consultá la CLI** — no asumas una
+lista fija, el registry remoto se actualiza por separado:
 
-| Template | Descripción |
-|---|---|
-| `general` | Artículo genérico (embebido, offline) |
-| `apa-general` | Reporte APA 7ma edición |
-| `apa-unisalle` | Tesis Universidad de La Salle |
-| `ieee` | Paper IEEE |
-| `letter` | Correspondencia formal en español |
+```bash
+texforge template list --all   # fuente de verdad: instalados + registry remoto
+```
+
+Cada entrada muestra nombre y descripción. Usá ese nombre con `texforge new -t <nombre>`
+o `texforge template add <nombre>`.
 
 ## Flujo típico — proyecto nuevo
 
