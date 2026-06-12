@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.5"
+  version: "1.6"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-06-11"
+  last_updated: "2026-06-12"
 ---
 
 # texforge CLI
@@ -171,6 +171,17 @@ texforge fmt           # formatea en lugar
 texforge fmt --check   # solo verifica, útil en CI
 ```
 
+Formateador determinista (estilo `cargo fmt`): re-indenta `.tex` por nivel de
+anidamiento — entornos (`\begin`/`\end`) **y** llaves sin cerrar (p.ej.
+`\hypersetup{...}` o un `\subsection*{...}` multilínea) — recortando espacios
+finales y colapsando líneas en blanco repetidas. No reflowea el texto de
+párrafos ni toca el contenido de entornos verbatim/lstlisting/minted.
+
+También formatea archivos `.bib`: un campo por línea, indentación de 2 espacios,
+`=` alineados, tipos y nombres de campo en minúscula, y coma final tras cada
+campo. Es conservador — si un `.bib` no se puede parsear con seguridad, lo deja
+intacto en vez de arriesgar corromper las referencias.
+
 ### `texforge check`
 
 Linter estático — valida sin compilar. Detecta:
@@ -206,8 +217,8 @@ Claves disponibles: `name`, `email`, `institution`, `language`.
 ### `texforge template`
 
 ```bash
-texforge template list               # lista templates instalados localmente
-texforge template list --all         # lista instalados + disponibles en el registry remoto
+texforge template list               # instalados + disponibles en el registry remoto (por defecto)
+texforge template list --local       # solo los instalados localmente (sin consultar el registry)
 texforge template add apa-general    # descarga desde registry
 texforge template remove apa-general
 texforge template validate apa-general
@@ -217,7 +228,7 @@ Para conocer los templates disponibles, **siempre consultá la CLI** — no asum
 lista fija, el registry remoto se actualiza por separado:
 
 ```bash
-texforge template list --all   # fuente de verdad: instalados + registry remoto
+texforge template list   # fuente de verdad: instalados + registry remoto (por defecto)
 ```
 
 Cada entrada muestra nombre y descripción. Usá ese nombre con `texforge new -t <nombre>`

@@ -1,5 +1,14 @@
 # Changelog - texforge Skill
 
+## Version 1.6 (2026-06-12)
+
+### Changed
+- `texforge fmt` reescrito — ahora indenta por anidamiento real (entornos **y** llaves sin cerrar), arreglando entornos anidados que quedaban a la izquierda con su contenido flotando. Idempotente y verificado: el PDF resultante es byte-idéntico al original (cambios solo cosméticos)
+
+### Added
+- `texforge fmt` ahora también formatea archivos `.bib` (un campo por línea, `=` alineados, tipos/campos en minúscula, coma final). Conservador: deja intactos los `.bib` que no puede parsear con seguridad
+- `texforge template list` ahora lista **por defecto** instalados + registry remoto; nuevo flag `--local` para ver solo los instalados (reemplaza al antiguo `--all`)
+
 ## Version 1.5 (2026-06-11)
 
 ### Added
