@@ -1,13 +1,13 @@
 ---
 name: cadforge
 description: >
-  Use this skill when the user needs cadforge workflows for declarative 2D CAD in TOML
+  Use this skill when the user needs cadforge workflows for declarative CAD as code in TOML
   (.cf): creating projects, live-previewing in the browser (serve), compiling to DXF,
   validating layers/constraints, generating PNG/SVG previews for visual verification,
   importing DXF, formatting .cf files, or running watch mode. Activate for prompts
   mentioning cadforge commands (new/init/serve/build/check/layers/preview/schema/fmt/
   watch/import/view), project.toml, .cf primitives, AGENTS.md in a CAD project, or
-  Architecture as Code drawing pipelines.
+  CAD-as-code drawing pipelines.
 license: MIT
 metadata:
   author: jheison.martinez
@@ -19,7 +19,7 @@ metadata:
 
 # cadforge skill
 
-cadforge is a Rust CLI + library for Architecture as Code in 2D CAD. Geometry is
+cadforge is a Rust CLI + library for CAD as code. Geometry is
 declared in `.cf` TOML layers orchestrated by `project.toml`, compiles
 deterministically to DXF, and renders faithful previews (real text, measured
 dimension labels, hatches) so both humans and AI agents can *see* the drawing.

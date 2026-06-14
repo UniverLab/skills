@@ -47,7 +47,7 @@ cp -r skills/texforge ~/.agents/skills/
 > **Nota:** Requiere `texforge` en PATH. Se instala automáticamente durante el setup de Canopy solo si el binario está disponible.
 
 ### cadforge
-CLI para Architecture as Code en 2D CAD. Compila archivos `.cf` (TOML) a DXF con preview PNG.
+CLI de CAD como código: geometría declarativa en archivos `.cf` (TOML), compilada a DXF con preview PNG.
 
 ```bash
 # Instalación manual
