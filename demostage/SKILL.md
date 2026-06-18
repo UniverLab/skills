@@ -1,5 +1,5 @@
 ---
-name: demo-stage
+name: demostage
 description: >
   CLI tool for making terminal demos as reproducible code ("Demos as Code"). Use this skill whenever the
   user wants to record, normalize, validate or export a terminal demo, author a demo.toml score, produce a
