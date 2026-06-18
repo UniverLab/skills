@@ -18,3 +18,6 @@ requires = "texforge"
 
 [skills.cadforge]
 requires = "cadforge"
+
+[skills.demo-stage]
+requires = "demo"

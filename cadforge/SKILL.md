@@ -11,10 +11,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "0.6.0"
+  version: "0.8.0"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-06-12"
+  last_updated: "2026-06-18"
 ---
 
 # cadforge skill
@@ -39,25 +39,31 @@ Use this skill when the task involves:
 
 ```bash
 cadforge new mi-proyecto && cd mi-proyecto
-cadforge serve --open          # live browser preview on http://127.0.0.1:4377
-# edit .cf files — the browser refreshes ~80ms after every save;
-# parse errors appear as an overlay instead of breaking the loop
+cadforge serve                 # live preview on http://127.0.0.1:4377
+# serve DAEMONIZES by default: it prints the URL + pid and returns (the
+# server keeps running in the background — it does NOT block the shell).
+# Then open the URL in a browser. edit .cf files — the browser refreshes
+# ~80ms after every save; parse errors appear as an overlay.
+cadforge serve --stop          # stop the background server for this project
+cadforge serve --foreground    # opt-in: stay attached, stream logs, Ctrl+C to stop
 ```
 
 Viewer features:
 - scroll = zoom, drag = pan, double-click / `F` = fit, `Esc` = deselect
 - **click any entity** → inspector panel with its source TOML block and
   copy buttons (`copy for agent` produces a ready-made targeted-edit prompt)
-- layer panel (or keys `1`-`9`): cycle each layer on → ghost → off; ghost is
-  ideal for tracing one floor plan over another
-- `3D` button (or key `3`): stack the layers in a 3D exploded view
+- left sidebar has two stacked panels (drag the divider to resize): **Layers**
+  (keys `1`-`9`: cycle on → ghost → off, ideal for tracing floors) and **Planos**
+  (click a sheet to view it; click again to return to the model)
+- `3D` button (or key `3`): real extruded 3D view — primitives with an
+  `extrude` height become solids/walls (see `.cf format essentials`)
 
 `serve` renders SVG only; run `cadforge build` when you need the DXF.
 
 ## The agent feedback loop (autonomous editing)
 
 1. `cadforge schema` — dump the complete `.cf` language reference (markdown).
-   Every project scaffolded by `cadforge new` also contains it as `AGENTS.md`.
+   If a project lacks an `AGENTS.md`, generate one with `cadforge schema > AGENTS.md`.
 2. Edit `.cf` files.
 3. `cadforge check --json` — machine-readable validation: layers, entity
    counts, constraint violations, `strict` flag. Non-zero exit if strict+violations.
@@ -67,19 +73,25 @@ Viewer features:
 5. `cadforge preview --highlight ln-001,tx-002` — re-render with labeled amber
    dashed markers around those ids to confirm an edit landed where intended.
    Unknown ids are ignored silently.
+6. `cadforge preview --3d` — render the extruded 3D view to `preview.png`
+   (axonometric). **Look at the image** to verify heights/elevations.
 
 ## Core commands
 
 ```bash
-cadforge new <name>                 # scaffold project + AGENTS.md
+cadforge new <name>                 # scaffold a starter project (shapes/curves/annotations)
 cadforge init                       # scaffold into current directory
-cadforge serve [--open] [--port N]  # live preview server (default port 4377)
+cadforge serve [--port N] [--open]  # live preview server (default port 4377);
+                                    # DAEMONIZES by default (returns immediately)
+cadforge serve --stop               # stop this project's background server
+cadforge serve --foreground         # run attached (blocks; Ctrl+C to stop)
 cadforge build [--layer <name>] [--output <file>] [--check]
 cadforge check [--json]
 cadforge layers [--json]
 cadforge schema                     # full .cf reference for agents
 cadforge preview [--width <px>] [-H <px>] [--layer <name>]
-                 [--format png|svg|all] [--highlight id1,id2]
+                 [--format png|svg|all] [--highlight id1,id2] [--3d]
+                 [--plano <name>]   # render a drawing sheet (see project.toml)
 cadforge fmt [--check]
 cadforge watch                      # auto-rebuild DXF on save
 cadforge import <file.dxf> [--layer <name>]
@@ -112,6 +124,9 @@ weight = 0.50
 id = "pl-001"
 points = [[0.0, 0.0], [5.0, 0.0], [5.0, 3.0], [0.0, 3.0]]
 closed = true
+extrude = 3.0           # 3D view only: height (world units). closed shape → solid;
+                        #   line / open polyline → wall. omitted/0 = flat
+elevation = 0.0         # 3D view only: base Z the shape sits at (default 0)
 
 [[text]]
 position = [4.0, 3.0]
@@ -141,6 +156,13 @@ step_angle = 22.5
 [[mirror]]              # mirrored copies get ids id@m
 targets = ["pl-nave", "ar-puerta"]
 axis = [[2.5, 0.0], [2.5, 1.0]]
+
+# 3D-only solids + CSG booleans (do NOT appear in the 2D plan or DXF).
+# Cube with a hole = box − cylinder:
+[[solid]]   id = "cubo"  shape = "box"      at = [0,0,0]      size = [4,4,4]
+[[solid]]   id = "broca" shape = "cylinder" at = [2,2,-0.5]   radius = 1.2  height = 5
+[[boolean]] id = "perforado" op = "difference" base = "cubo" tools = ["broca"]
+# op = difference (cut) | union | intersection; result rendered, inputs consumed
 ```
 
 ## project.toml essentials
@@ -158,6 +180,24 @@ cotas = { file = "cotas.cf", locked = false }
 [constraints]           # optional
 cotas.parent = "muros"          # child bbox inside parent bbox
 cotas.belongs_to = "muros"      # children reference parent ids via belongs_to
+
+# Planos (drawing sheets / "ventanas"): named views of the one model, framed at
+# a paper size with a title block (rótulo). Listed in the viewer's Planos panel
+# (under Layers); render with `cadforge preview --plano <name>`.
+[[plano]]
+name = "P-01"
+view = "plan"           # plan | iso | front | back | left | right | top | section
+size = [420.0, 297.0]   # sheet size in mm (default A3 landscape)
+scale = "1:50"
+title = "Planta baja"
+rotulo = "rotulo.cf"    # optional: a .cf drawn as a custom title block (else default)
+
+[[plano]]               # a cut: keep one side of a plane, see the interior
+name = "C-01"
+view = "section"
+cut_axis = "z"          # x | y | z
+cut_at = 1.5
+keep = "min"            # min (default) keeps ≤ side, max keeps ≥ side
 ```
 
 ## Gotchas
@@ -173,9 +213,21 @@ cotas.belongs_to = "muros"      # children reference parent ids via belongs_to
 - Text rendering uses an embedded DejaVu Sans Mono: previews are deterministic and
   work in containers with no system fonts.
 - `serve` watches `.cf`/`.toml` only and renders SVG; it does not write DXF.
+  It runs as a background daemon by default (pid + log under `.cadforge/`);
+  do not wrap it in your own `&`/`nohup`, and stop it with `cadforge serve --stop`.
 - `[[array]]`/`[[mirror]]` expand at build time; generated copies have ids
   like `base@3` / `base@m`. To change all copies, edit the base entity or the
   array/mirror block — generated ids do not exist in the source files.
-- 2D geometry only (plan views) — no 3D kernel; the viewer's 3D mode is a
-  visual stack of 2D layers. For constraints/import edge cases, check
-  `cadforge-spec.md` in the repo before promising behavior.
+- Geometry is authored in 2D plan coordinates, but cadforge HAS a real 3D view
+  (`cadforge preview --3d`, viewer `3D` button):
+  - **Extrusion** — give a 2D primitive an `extrude` height (+ optional
+    `elevation`): closed shapes → prisms/cylinders, lines/open polylines → walls.
+  - **Solids + CSG booleans** — `[[solid]]` (box/cylinder) combined with
+    `[[boolean]]` (`difference`/`union`/`intersection`). "Cube with a hole" =
+    box − cylinder. This is how you cut/drill.
+  If a user wants a 3D model, reach for `extrude`/`elevation` or `[[solid]]` +
+  `[[boolean]]` here — do **not** scaffold external tools (Three.js/OpenSCAD/
+  FreeCAD). What is NOT supported: a B-rep feature tree / interactive
+  sketch-on-a-face workflow (select a face of a result, draw, pad/pocket) —
+  position the cutting solid by coordinates instead. For constraints/import
+  edge cases, check `cadforge-spec.md` in the repo before promising behavior.

@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
+  version: "1.5"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-04-03"
+  last_updated: "2026-06-18"
 ---
 
 # texforge CLI
@@ -141,6 +141,25 @@ digraph G {
 ```
 
 Mismas opciones que mermaid. Renderizado via `layout-rs` — Rust puro, sin binario `dot` externo.
+
+### Diagramas embebidos — D2
+
+```latex
+% Sin opciones (defaults: width=\linewidth, pos=H, sin caption)
+\begin{d2}
+a -> b -> c
+\end{d2}
+
+% Con opciones
+\begin{d2}[caption=Arquitectura del sistema, width=0.8\linewidth, pos=t]
+client -> server: HTTP
+server -> db: SQL
+db -> server: rows
+server -> client: JSON
+\end{d2}
+```
+
+Renderizado via `d2-little` — Rust puro, sin binario `d2` externo. Mismas opciones (width, pos, caption) que mermaid y graphviz. El linter (`texforge check`) también valida bloques `\begin{d2}` sin cerrar y opciones `pos` inválidas.
 
 ### `texforge fmt [--check]`
 
