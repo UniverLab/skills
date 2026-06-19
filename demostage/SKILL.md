@@ -137,5 +137,9 @@ duration_ms = 3000
   page fragments. Web pages scroll normally.
 - Browser panes are captured **after** the terminal run, so point them at something still available then — a
   persistent file (PDF, rendered SVG/PNG) or a server the terminal leaves running (don't stop it mid-score).
+- A browser pane **reveals when first focused**: `focus` it right after the server is up / the PDF compiled
+  (e.g. after a `wait_for_stdout`) and it opens at that moment.
+- For reproducible secret-gated flows, don't store the secret: list the env var in `[env].requires` and have
+  the runner provide it (e.g. `GITHUB_TOKEN` for ghScaff). `check` fails if a required var is unset.
 - Use `caption` steps to overlay step labels on the canvas (gif/mp4); add a `wait` after one to hold it.
 - Use `[typing].seed` whenever the output must be byte-stable (CI, golden files).
