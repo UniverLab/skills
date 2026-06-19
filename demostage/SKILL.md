@@ -96,8 +96,8 @@ action = "terminate"
 ```
 
 Timeline actions: `focus` (set active pane), `type` (`text`, `human_salt?`), `keypress` (`key`), `wait`
-(`duration_ms`), `wait_for_stdout` (`match`, `pane?`), `scroll` (browser: `direction`, `duration_ms`),
-`terminate`.
+(`duration_ms`), `caption` (`text` — on-canvas step label for gif/mp4; empty clears), `wait_for_stdout`
+(`match`, `pane?`), `scroll` (browser: `direction`, `duration_ms`), `terminate`.
 
 ## Multi-scene (terminal + browser)
 
@@ -131,4 +131,7 @@ duration_ms = 3000
   Chromium (or use a system install). If a download is blocked, install the tool via the package manager.
 - Scrolling Chrome's built-in **PDF** viewer is best-effort; for reliable PDF paging prefer a web preview or
   page fragments. Web pages scroll normally.
+- Browser panes are captured **after** the terminal run, so point them at something still available then — a
+  persistent file (PDF, rendered SVG/PNG) or a server the terminal leaves running (don't stop it mid-score).
+- Use `caption` steps to overlay step labels on the canvas (gif/mp4); add a `wait` after one to hold it.
 - Use `[typing].seed` whenever the output must be byte-stable (CI, golden files).
