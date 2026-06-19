@@ -126,6 +126,10 @@ duration_ms = 3000
 ## Notes for agents
 
 - Always `demo check` a score before `demo export`; fix every reported problem.
+- **Secrets:** `demo record` redacts input typed at password/passphrase prompts (it's
+  forwarded but never recorded). It's a heuristic — review the macro/score before
+  sharing, and prefer non-interactive bypasses (e.g. `GITHUB_TOKEN` for ghScaff) for
+  secret flows. Secrets a program *prints* to stdout are not redacted; edit them out.
 - For a clean recording, DemoStage forces `PS1='$ '` during export, so demos never leak `user@host`.
 - `cast`/`html`/`gif` are pure-Rust and offline. `mp4` auto-fetches ffmpeg; browser panes auto-fetch
   Chromium (or use a system install). If a download is blocked, install the tool via the package manager.
