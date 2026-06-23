@@ -1,25 +1,25 @@
 ---
-name: workflow-design
+name: loop-design
 description: >
   Use this skill when the user wants to turn a recurring or multi-step process
-  into a reusable Canopy workflow, inspect or reshape an existing workflow
+  into a reusable Canopy loop, inspect or reshape an existing loop
   graph, or coordinate background agent/check/gate flows with approvals and
   retries. Prefer reusable graph patterns over one-off pipelines, and build
-  against the MCP workflow tools that actually exist in the environment.
+  against the MCP loop tools that actually exist in the environment.
 license: MIT
 metadata:
   author: jheison.martinez
   version: "1.3"
   framework: OpenCode
-  category: workflow-orchestration
+  category: loop-orchestration
   last_updated: "2026-05-23"
 ---
 
-# Workflow Design
+# Loop Design
 
-Design generic workflows for Canopy as editable graphs, not as one-off scripts.
+Design generic loops for Canopy as editable graphs, not as one-off scripts.
 
-This skill exists for planning and authoring **background workflows** that users can later inspect, edit, and run from Canopy.
+This skill exists for planning and authoring **background loops** that users can later inspect, edit, and run from Canopy.
 
 ---
 
@@ -30,7 +30,7 @@ Translate a user goal into:
 1. ordered specs
 2. a graph per spec
 3. the right mix of `agent`, `check`, and `gate` nodes
-4. a persisted workflow built with MCP tools
+4. a persisted loop built with MCP tools
 
 The output must stay generic enough that different users can plug in different CLIs, models, prompts, and verification commands.
 
@@ -40,14 +40,14 @@ The output must stay generic enough that different users can plug in different C
 
 Use this skill when the user asks for any of the following:
 
-- create or plan a workflow
+- create or plan a loop
 - build a background pipeline
 - chain multiple agents with checkpoints
 - orchestrate developer/reviewer/verifier/committer flows
 - create reusable specs for implementation, bug fixing, refactors, docs, or ops
-- convert a manual process into a Canopy workflow graph
-- refine an existing workflow graph
-- turn a repeated manual process into a reusable workflow
+- convert a manual process into a Canopy loop graph
+- refine an existing loop graph
+- turn a repeated manual process into a reusable loop
 - add approvals, retries, or verification gates around agent work
 
 Do **not** reduce everything to one fixed "coding pipeline" unless the user explicitly wants that exact pattern.
@@ -56,7 +56,7 @@ Do **not** reduce everything to one fixed "coding pipeline" unless the user expl
 
 ## Core Rules
 
-### 1. Model workflows as graphs, not lists
+### 1. Model loops as graphs, not lists
 
 Each spec is an ordered work unit, but inside each spec you should think in graph form:
 
@@ -64,7 +64,7 @@ Each spec is an ordered work unit, but inside each spec you should think in grap
 - `check` — verifies with commands or deterministic checks
 - `gate` — decides the next route based on prior output
 
-If the workflow needs iteration, use edges and gates. If it is linear, keep it simple.
+If the loop needs iteration, use edges and gates. If it is linear, keep it simple.
 
 ### 2. Prefer explicit specs with narrow intent
 
@@ -92,12 +92,12 @@ Any node may use Copilot, OpenCode, Kimi, local MCP-driven agents, or other supp
 
 ### 4. Ask before irreversible behavior
 
-Before you create or run a workflow, clarify:
+Before you create or run a loop, clarify:
 
 - whether creation should stay draft or also run
 - what verification commands are authoritative
-- whether commits are allowed inside the workflow
-- whether blockers should pause or hard-fail the workflow
+- whether commits are allowed inside the loop
+- whether blockers should pause or hard-fail the loop
 
 ### 5. Reuse patterns, adapt prompts
 
@@ -111,7 +111,7 @@ Reuse graph patterns from the reference docs, but adapt:
 
 ---
 
-## Workflow Construction Playbook
+## Loop Construction Playbook
 
 ### Step 1 — Understand the target outcome
 
@@ -142,34 +142,34 @@ Typical choices:
 
 ### Step 4 — Persist via MCP tools
 
-Use the Canopy workflow tools, in order when creating:
+Use the Canopy loop tools, in order when creating:
 
-1. `workflow_create`
-2. `workflow_add_spec`
-3. `workflow_add_node`
-4. `workflow_add_edge`
-5. `workflow_get` to verify the final shape
+1. `loop_create`
+2. `loop_add_spec`
+3. `loop_add_node`
+4. `loop_add_edge`
+5. `loop_get` to verify the final shape
 
-When refining existing workflows, inspect with `workflow_list` / `workflow_get` first.
+When refining existing loops, inspect with `loop_list` / `loop_get` first.
 
 The toolset supports in-place mutations:
 
-- `workflow_update` — rename, redescription, or move workdir
-- `workflow_update_spec` — rename, change description, reorder, toggle parallelizable
-- `workflow_update_node` — rename, change kind, replace config, reposition
-- `workflow_update_edge` — change routing condition (pass/fail/always)
+- `loop_update` — rename, redescription, or move workdir
+- `loop_update_spec` — rename, change description, reorder, toggle parallelizable
+- `loop_update_node` — rename, change kind, replace config, reposition
+- `loop_update_edge` — change routing condition (pass/fail/always)
 
-Use these when the change is surgical. Use `workflow_create` + rebuild when the graph shape changes drastically.
+Use these when the change is surgical. Use `loop_create` + rebuild when the graph shape changes drastically.
 
 Runtime tools:
 
-- `workflow_run` — start execution
-- `workflow_pause` — halt after current node finishes
-- `workflow_continue` — resume with retry_current_node or skip_next_spec
-- `workflow_complete_node` — report pass/fail from inside a node
-- `workflow_report_blocker` — pause because a node needs human intervention
+- `loop_run` — start execution
+- `loop_pause` — halt after current node finishes
+- `loop_continue` — resume with retry_current_node or skip_next_spec
+- `loop_complete_node` — report pass/fail from inside a node
+- `loop_report_blocker` — pause because a node needs human intervention
 
-Only call `workflow_run` after the user has the chance to review the graph, unless they explicitly asked to launch it immediately.
+Only call `loop_run` after the user has the chance to review the graph, unless they explicitly asked to launch it immediately.
 
 ---
 
@@ -222,24 +222,24 @@ Examples:
 
 Before finishing, present a concise summary containing:
 
-1. workflow name
+1. loop name
 2. each spec in order
 3. graph per spec
 4. CLIs/models/checks chosen
-5. what still requires user confirmation before `workflow_run`
+5. what still requires user confirmation before `loop_run`
 
 ---
 
 ## Progressive Disclosure
 
-- Read **[references/workflow-patterns.md](references/workflow-patterns.md)** when choosing a graph shape for a spec.
-- Read **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** immediately before creating, extending, or replacing a workflow through MCP tools.
+- Read **[references/loop-patterns.md](references/loop-patterns.md)** when choosing a graph shape for a spec.
+- Read **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** immediately before creating, extending, or replacing a loop through MCP tools.
 
 ---
 
 ## Reference Documentation
 
-- **[references/workflow-patterns.md](references/workflow-patterns.md)** — reusable graph patterns
+- **[references/loop-patterns.md](references/loop-patterns.md)** — reusable graph patterns
 - **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** — tool order and editing flow
 
 See **[README.md](README.md)** for overview and usage.
