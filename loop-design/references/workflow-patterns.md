@@ -1,6 +1,6 @@
-# Workflow Patterns
+# Loop Patterns
 
-Reusable graph patterns for Canopy workflows.
+Reusable graph patterns for Canopy loops.
 
 ---
 
@@ -25,7 +25,7 @@ Best for:
 
 ## 2. Focused Bugfix Loop
 
-Use when the workflow has a strong deterministic check.
+Use when the loop has a strong deterministic check.
 
 ```text
 fixer --always--> targeted_test --pass--> finish_gate
@@ -80,7 +80,7 @@ Best for:
 
 ## 5. Commit-on-Green Finish
 
-Use only when the user explicitly allows commits inside the workflow.
+Use only when the user explicitly allows commits inside the loop.
 
 ```text
 implementer -> verifier -> reviewer -> commit_ready_gate
