@@ -1,6 +1,6 @@
 # texforge skill
 
-Agent skill for the [texforge](https://github.com/JheisonMB/texforge) CLI — a self-contained LaTeX to PDF compiler with no external dependencies.
+Agent skill for the [texforge](https://github.com/UniverLab/texforge) CLI — a self-contained LaTeX to PDF compiler with no external dependencies.
 
 ## What it does
 
@@ -12,11 +12,12 @@ Teaches the agent how to use the texforge CLI to:
 - Watch for changes and rebuild automatically (`texforge build --watch`)
 - Format and lint documents (`texforge fmt`, `texforge check`)
 - Manage templates (`texforge template`)
+- Manage global configuration (`texforge config`)
 
 ## Resources
 
-- **CLI**: [github.com/JheisonMB/texforge](https://github.com/JheisonMB/texforge)
-- **Templates**: [github.com/JheisonMB/texforge-templates](https://github.com/JheisonMB/texforge-templates)
+- **CLI**: [github.com/UniverLab/texforge](https://github.com/UniverLab/texforge)
+- **Templates**: [github.com/UniverLab/texforge-templates](https://github.com/UniverLab/texforge-templates)
 
 ## Install skill
 

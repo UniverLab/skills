@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
+  version: "1.6"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-04-03"
+  last_updated: "2026-06-12"
 ---
 
 # texforge CLI
@@ -24,12 +24,12 @@ CLI para compilar LaTeX a PDF. Usa [tectonic](https://tectonic-typesetting.githu
 
 ```bash
 # Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/JheisonMB/texforge/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/UniverLab/texforge/main/scripts/install.sh | sh
 ```
 
 ```powershell
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/JheisonMB/texforge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/UniverLab/texforge/main/scripts/install.ps1 | iex
 ```
 
 ```bash
@@ -98,6 +98,15 @@ Compila `main.tex` → PDF en `build/`. Los errores se muestran con archivo, lí
 
 Antes de compilar, intercepta entornos de diagramas embebidos, los renderiza, y trabaja sobre copias en `build/` — los `.tex` originales nunca se modifican.
 
+#### `texforge build --watch`
+
+```bash
+texforge build --watch             # recompila al guardar (debounce 2s por defecto)
+texforge build --watch --delay 5   # debounce de 5s
+```
+
+Sesión persistente con timer en vivo, contador de builds y solo el último resultado (sin acumular logs). Salida coloreada; `Ctrl+C` para salir.
+
 ### `texforge clean`
 
 ```bash
@@ -142,12 +151,36 @@ digraph G {
 
 Mismas opciones que mermaid. Renderizado via `layout-rs` — Rust puro, sin binario `dot` externo.
 
+### Diagramas embebidos — D2
+
+```latex
+\begin{d2}[caption=Arquitectura, width=0.7\linewidth]
+user -> api: request
+api -> db: query
+db -> api: rows
+api -> user: response
+\end{d2}
+```
+
+Sintaxis [D2](https://d2lang.com) (contenedores, shapes, `sql_table`, etc.). Mismas opciones que mermaid/graphviz. Renderizado via `d2-little` — Rust puro, sin binario `d2` externo ni Node.js.
+
 ### `texforge fmt [--check]`
 
 ```bash
 texforge fmt           # formatea en lugar
 texforge fmt --check   # solo verifica, útil en CI
 ```
+
+Formateador determinista (estilo `cargo fmt`): re-indenta `.tex` por nivel de
+anidamiento — entornos (`\begin`/`\end`) **y** llaves sin cerrar (p.ej.
+`\hypersetup{...}` o un `\subsection*{...}` multilínea) — recortando espacios
+finales y colapsando líneas en blanco repetidas. No reflowea el texto de
+párrafos ni toca el contenido de entornos verbatim/lstlisting/minted.
+
+También formatea archivos `.bib`: un campo por línea, indentación de 2 espacios,
+`=` alineados, tipos y nombres de campo en minúscula, y coma final tras cada
+campo. Es conservador — si un `.bib` no se puede parsear con seguridad, lo deja
+intacto en vez de arriesgar corromper las referencias.
 
 ### `texforge check`
 
@@ -168,25 +201,38 @@ ERROR [main.tex:12]
   \cite{smith2020} — key not found in .bib
 ```
 
+### `texforge config`
+
+Gestiona la configuración global (`~/.texforge/`), usada para rellenar placeholders al crear proyectos (autor, institución, etc.).
+
+```bash
+texforge config                      # wizard interactivo
+texforge config list                 # muestra toda la configuración actual
+texforge config name                 # muestra el valor de una clave
+texforge config name "Jane Doe"      # asigna un valor
+```
+
+Claves disponibles: `name`, `email`, `institution`, `language`.
+
 ### `texforge template`
 
 ```bash
-texforge template list               # lista templates instalados localmente
-texforge template list --all         # lista instalados + disponibles en el registry remoto
+texforge template list               # instalados + disponibles en el registry remoto (por defecto)
+texforge template list --local       # solo los instalados localmente (sin consultar el registry)
 texforge template add apa-general    # descarga desde registry
 texforge template remove apa-general
 texforge template validate apa-general
 ```
 
-Templates disponibles:
+Para conocer los templates disponibles, **siempre consultá la CLI** — no asumas una
+lista fija, el registry remoto se actualiza por separado:
 
-| Template | Descripción |
-|---|---|
-| `general` | Artículo genérico (embebido, offline) |
-| `apa-general` | Reporte APA 7ma edición |
-| `apa-unisalle` | Tesis Universidad de La Salle |
-| `ieee` | Paper IEEE |
-| `letter` | Correspondencia formal en español |
+```bash
+texforge template list   # fuente de verdad: instalados + registry remoto (por defecto)
+```
+
+Cada entrada muestra nombre y descripción. Usá ese nombre con `texforge new -t <nombre>`
+o `texforge template add <nombre>`.
 
 ## Flujo típico — proyecto nuevo
 
