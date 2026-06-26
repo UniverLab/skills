@@ -6,8 +6,8 @@ description: >
   validating layers/constraints, generating PNG/SVG previews for visual verification,
   importing DXF, formatting .cf files, or running watch mode. Activate for prompts
   mentioning cadforge commands (new/init/serve/build/check/layers/preview/schema/fmt/
-  watch/import/view), project.toml, .cf primitives, AGENTS.md in a CAD project, or
-  CAD-as-code drawing pipelines.
+  watch/import/view), project.toml, .cf primitives, or Architecture as Code
+  drawing pipelines.
 license: MIT
 metadata:
   author: jheison.martinez
@@ -62,8 +62,8 @@ Viewer features:
 
 ## The agent feedback loop (autonomous editing)
 
-1. `cadforge schema` — dump the complete `.cf` language reference (markdown).
-   If a project lacks an `AGENTS.md`, generate one with `cadforge schema > AGENTS.md`.
+1. `cadforge schema` — dump the complete `.cf` language reference (markdown);
+   this is the single source of truth for the format, straight from the CLI.
 2. Edit `.cf` files.
 3. `cadforge check --json` — machine-readable validation: layers, entity
    counts, constraint violations, `strict` flag. Non-zero exit if strict+violations.
@@ -79,7 +79,7 @@ Viewer features:
 ## Core commands
 
 ```bash
-cadforge new <name>                 # scaffold a starter project (shapes/curves/annotations)
+cadforge new <name>                 # scaffold a multi-layer project
 cadforge init                       # scaffold into current directory
 cadforge serve [--port N] [--open]  # live preview server (default port 4377);
                                     # DAEMONIZES by default (returns immediately)

@@ -1,5 +1,28 @@
 # Changelog - texforge Skill
 
+## Version 1.6 (2026-06-12)
+
+### Changed
+- `texforge fmt` reescrito — ahora indenta por anidamiento real (entornos **y** llaves sin cerrar), arreglando entornos anidados que quedaban a la izquierda con su contenido flotando. Idempotente y verificado: el PDF resultante es byte-idéntico al original (cambios solo cosméticos)
+
+### Added
+- `texforge fmt` ahora también formatea archivos `.bib` (un campo por línea, `=` alineados, tipos/campos en minúscula, coma final). Conservador: deja intactos los `.bib` que no puede parsear con seguridad
+- `texforge template list` ahora lista **por defecto** instalados + registry remoto; nuevo flag `--local` para ver solo los instalados (reemplaza al antiguo `--all`)
+
+## Version 1.5 (2026-06-11)
+
+### Added
+- Diagramas D2 embebidos en `.tex` con `\begin{d2}...\end{d2}` — mismas opciones que mermaid/graphviz, renderizado en Rust puro (`d2-little`)
+- `texforge config` — documentado por primera vez (wizard, `list`, get/set; claves `name`, `email`, `institution`, `language`)
+- `texforge build --watch` — documentado en el cuerpo del skill con el flag correcto `--delay`
+
+### Fixed
+- URLs de instalación rotas — apuntaban a `JheisonMB/texforge/main/install.{sh,ps1}` (404); ahora `UniverLab/texforge/main/scripts/install.{sh,ps1}`
+- Referencias de repos en README actualizadas de `JheisonMB` a `UniverLab`
+
+### Changed
+- La lista de templates ya no se hardcodea — el skill instruye consultar `texforge template list --all` como fuente de verdad
+
 ## Version 1.4 (2026-04-03)
 
 ### Changed
