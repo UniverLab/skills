@@ -118,4 +118,4 @@ MIT © Jheison Martinez
 
 ## Version
 
-1.2 (2026-05-13)
+1.4 (2026-06-28)

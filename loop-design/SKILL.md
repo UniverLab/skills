@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.3"
+  version: "1.4"
   framework: OpenCode
   category: loop-orchestration
-  last_updated: "2026-05-23"
+  last_updated: "2026-06-28"
 ---
 
 # Loop Design
