@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
-  framework: OpenCode
+  version: "1.5"
+  framework: Canopy
   category: loop-orchestration
-  last_updated: "2026-06-28"
+  last_updated: "2026-07-05"
 ---
 
 # Loop Design
@@ -98,6 +98,16 @@ Before you create or run a loop, clarify:
 - what verification commands are authoritative
 - whether commits are allowed inside the loop
 - whether blockers should pause or hard-fail the loop
+
+### 4b. A loop does not have to be run by hand
+
+A loop can be scheduled to fire on its own, the same way background agents can. `loop_create`/`loop_update` accept an optional `trigger` — a loop is not limited to `loop_run` on demand:
+
+- **manual** (default) — the loop only starts when someone calls `loop_run`. Clearing a trigger (or omitting it on create) keeps this mode.
+- **cron** — fires on a 5-field cron expression, evaluated in the same **local wall-clock** frame as agent triggers (not UTC).
+- **watch** — fires when a file or directory changes (create/modify/delete/move, or "all"), with a debounce window.
+
+Ask the user which mode fits before creating the loop: a one-off migration is almost always manual; a recurring maintenance sweep (nightly cleanup, "re-run docs sync whenever the schema file changes") is a candidate for cron or watch. See **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** for the exact `trigger` fields.
 
 ### 5. Reuse patterns, adapt prompts
 

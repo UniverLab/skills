@@ -78,7 +78,35 @@ Best for:
 
 ---
 
-## 5. Commit-on-Green Finish
+## 5. Multi-Platform Cross-Check
+
+Use when you want a second CLI/model family to catch what the first one missed, instead of a same-vendor reviewer marking its own work.
+
+```text
+implementer(claude/opus) --always--> crosscheck(opencode/qwen) --pass--> finish_gate
+                                            \--fail-------------------> implementer(claude/opus)
+finish_gate(pass_route=next_spec) --fail--> implementer(codex)
+```
+
+- `implementer` — `agent` node on one platform/model (e.g. `platform: "anthropic", model: "claude-sonnet-5"`).
+- `crosscheck` — `check`/`agent` node on a **different** platform (e.g. `platform: "opencode", model: "qwen3-coder"`), reviewing the implementer's diff against the spec.
+- `finish_gate` — routes on the cross-check verdict; on repeated failure, escalate to a third platform (e.g. `platform: "codex"`) rather than looping the same pair forever.
+
+Best for:
+
+- security-sensitive changes where a same-vendor blind spot is a real risk
+- verifying that a fix isn't overfit to one model's interpretation of the spec
+- setups where the user has multiple CLI subscriptions and wants them cross-validating each other
+
+Rules:
+
+- never assume the cross-check platform matches the implementer's — that defeats the purpose
+- keep the cross-check prompt narrow (diff + spec + "find what's wrong"), not a re-implementation
+- cap escalation depth (e.g. 1 cross-check retry, then 1 third-platform escalation) so the loop can't spin forever between two disagreeing models
+
+---
+
+## 6. Commit-on-Green Finish
 
 Use only when the user explicitly allows commits inside the loop.
 
