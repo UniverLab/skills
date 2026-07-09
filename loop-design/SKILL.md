@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.5"
+  version: "1.7"
   framework: Canopy
   category: loop-orchestration
-  last_updated: "2026-07-05"
+  last_updated: "2026-07-09"
 ---
 
 # Loop Design
@@ -149,6 +149,16 @@ Typical choices:
 - **review loop:** `agent -> review -> gate -> agent`
 - **verify loop:** `agent -> check -> gate -> agent`
 - **finish gate:** `agent/check -> gate(pass_route=next_spec)`
+- **gated implement:** `implement --pass--> check -> reviewer/committer`
+  (see pattern 7 in the reference — the shape that stops a dead implement from
+  reaching the reviewer)
+- **resilience branch:** add `implement --fail--> resilience` so a failed
+  implement is *triaged* instead of silently ending the spec (pattern 8)
+
+**Route the implement's success edge with `pass`, never `always`.** An `always`
+edge sends a *failed* implement (crash, quota exhaustion) straight to the reviewer,
+which then approves work that does not exist. This is not hypothetical: it marked
+specs `completed` with no commit behind them.
 
 ### Step 4 — Persist via MCP tools
 
@@ -180,6 +190,121 @@ Runtime tools:
 - `loop_report_blocker` — pause because a node needs human intervention
 
 Only call `loop_run` after the user has the chance to review the graph, unless they explicitly asked to launch it immediately.
+
+---
+
+## Graph Validation — fatal shapes to avoid
+
+The engine executes a spec by walking its edge graph, and it is **strict**: several
+malformed shapes don't degrade gracefully — they abort the whole loop, sometimes
+before a single node runs. Validate every spec against these before `loop_run`.
+Field lessons that motivated this section are in
+**[references/loop-patterns.md](references/loop-patterns.md)** under "Failure modes".
+
+### 1. Exactly one resolvable entry node per spec
+
+The start node is resolved topologically: the node with **no incoming edge**. Two
+traps:
+
+- **Retry cycles hide the entry.** A back-edge like `review --fail--> implement`
+  gives the implement node an incoming edge, so a naive `implement <-> review`
+  cycle has **zero** source nodes → the spec cannot start (historically:
+  `"Spec has no entry node"`, failing the loop instantly with no runs and
+  `started_at == completed_at`). The engine now falls back to the
+  **lowest-`position`** node in that case, so **node `position` is meaningful** —
+  make the intended start `position: 1`. Don't rely on insertion order.
+- **Multiple sources are also rejected** (`"multiple entry nodes"`). If a spec has
+  two disconnected starts, that's a modelling error — split it or connect them.
+
+### 2. No ambiguous outgoing edges
+
+When a node finishes, the engine selects the next edge whose condition matches the
+result (`pass`|`fail`, and `always` matches both). If the matching edges point at
+**different targets**, it aborts with `"ambiguous outgoing edges"` — fatal, and it
+happens *after* the node already did its work.
+
+- Two edges that are byte-identical (same `to_node` **and** condition) are now
+  deduped rather than fatal. Don't lean on it: still guard against inserting the
+  same edge twice when building in a batch.
+- Never emit `always` + `pass` from one node to **different** targets — both match
+  a pass, and that is the genuine ambiguity the engine rejects.
+- A `pass` edge and a `fail` edge from the same node are fine: disjoint conditions.
+
+### 3. Node config: the defaults that bite
+
+- **`config` must be a JSON object.** The MCP schema now declares
+  `"type": "object"` and serde rejects anything else, so a JSON-*encoded string*
+  fails at parse time. Historically it was stored as a string and the node died
+  mid-run with `"missing a platform/cli"`.
+- **`check` nodes default to `timeout_seconds: 120`.** A real test suite blows
+  through that. Set it explicitly (`1500` is a sane floor for a Rust workspace) or
+  every check dies by timeout.
+- **`gate` nodes match against the JSON-serialized previous output**, not a clean
+  string. `output_contains: "APPROVED"` collides with prose like *"not approved"*.
+  Use a strict token the reviewer must emit verbatim, e.g. `"VERDICT: APPROVED"`.
+- Required keys by kind: `agent` → `platform`; `check` → `command`;
+  `gate` → `value`.
+
+### 4. Every node's platform must resolve **on the daemon**
+
+Agent nodes spawn their CLI from the **canopy daemon's** environment (often a
+systemd user service), *not* your interactive shell. A `platform` whose binary is
+on your `$PATH` but not the daemon's will fail to spawn mid-run.
+
+- Prefer an **absolute `binary` path** in the CLI registry (`~/.canopy/config.toml`)
+  for any CLI installed outside standard locations, or ensure the daemon's `PATH`
+  includes it. The registry is re-read per node execution, so a binary-path fix is
+  picked up **without restarting the daemon**.
+- An empty `model` is tolerated by some CLIs (falls back to their default), but be
+  explicit when you can.
+
+### 5. The iteration budget
+
+Each node may run at most `DEFAULT_MAX_ITERATIONS_PER_NODE` (10) times within a
+spec; exceeding it fails the spec with `"exceeded max iterations"`. The budget is
+**reset when a spec starts fresh** and only carried over when *resuming* a spec
+left in `Running`. So a spec killed repeatedly by an external cause (CLI quota)
+no longer dies permanently after ten attempts.
+
+A `check --fail--> implement` ping-pong is therefore bounded, not infinite.
+
+### 6. Reading a failure & recovering
+
+Two failure signatures, and they mean opposite things:
+
+- **Structural:** loop `status = failed` but **0 specs failed**, no runs recorded,
+  `started_at == completed_at`. That's a graph/spawn error, not agent work — read
+  `~/.canopy/daemon.log` for the exact `bail!` message.
+- **Honest:** loop `failed` with a spec actually marked `failed`. A node genuinely
+  failed (e.g. the CLI hit its session limit). This is what a well-shaped graph
+  produces, and it is cheap to recover from.
+
+**Relaunching:** `loop_run` refuses `completed`/`failed` loops
+(`"cannot be resumed yet"`), and `loop_continue` only acts on **paused** loops.
+Reset the loop's status (and the affected spec's) and run again — **completed specs
+are skipped**, so prior work is never redone.
+
+**Scheduled resume without polling:** `loop_schedule_autorun { loop_id, at }` fires
+a loop **once** at an exact time; `agent_schedule_enable { id, at }` does the same
+for a disabled background agent. Both fold into the scheduler's wakeup calculation,
+so nothing polls. This is the right answer when a node dies on a quota that resets
+at a known hour — far better than a recurring cron that retries blindly and burns
+the iteration budget.
+
+Note the asymmetry: the `"cannot be resumed yet"` guard lives in the **MCP handler**
+for `loop_run`, not in the engine. A scheduled trigger (`autorun_at`, cron) calls
+the engine directly and will happily resume a `failed` loop.
+
+**Pre-flight checklist before `loop_run`:** per spec, exactly one entry (or a clear
+lowest-`position` start) · no duplicate/overlapping outgoing edges per condition ·
+every `config` an object with its kind's required key · `check` timeouts raised
+above the 120 s default · every referenced platform resolvable by the daemon.
+
+### 7. `run_loop` freezes the spec list
+
+`run_loop` reads the spec list **once** at launch. A spec added to a running loop
+will not execute in that pass: let it finish, reset the loop to `draft`, and
+`loop_run` again — the completed specs are skipped and only the new one runs.
 
 ---
 

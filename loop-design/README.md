@@ -82,6 +82,8 @@ Execution flow:
 - `loop_run`
 - `loop_pause`
 - `loop_continue`
+- `loop_schedule_autorun` — resume a loop once, at an exact time (no polling)
+- `agent_schedule_enable` — re-enable a background agent once, at an exact time
 
 ---
 
@@ -118,4 +120,13 @@ MIT © Jheison Martinez
 
 ## Version
 
-1.4 (2026-06-28)
+1.7 (2026-07-09)
+
+Recent additions, all learned from real broken runs:
+
+- **Graph Validation** (SKILL.md) — the fatal shapes: entry node, ambiguous edges,
+  `config` typing, `check` timeout default, gate matching on serialized JSON.
+- **Patterns 7 & 8** (loop-patterns.md) — *Gated Implement* and the
+  *Resilience Branch* that triages a failed implement and schedules its own resume.
+- **Resume semantics** (mcp-tool-playbook.md) — why `loop_run` refuses failed loops
+  but a scheduled trigger does not.
