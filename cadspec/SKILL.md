@@ -1,25 +1,25 @@
 ---
-name: cadforge
+name: cadspec
 description: >
-  Use this skill when the user needs cadforge workflows for declarative CAD as code in TOML
+  Use this skill when the user needs cadspec workflows for declarative CAD as code in TOML
   (.cf): creating projects, live-previewing in the browser (serve), compiling to DXF,
   validating layers/constraints, generating PNG/SVG previews for visual verification,
   importing DXF, formatting .cf files, or running watch mode. Activate for prompts
-  mentioning cadforge commands (new/init/serve/build/check/layers/preview/schema/fmt/
-  watch/import/view), project.toml, .cf primitives, or Architecture as Code
-  drawing pipelines.
+  mentioning cadspec commands (new/init/serve/build/check/layers/preview/schema/fmt/
+  watch/import/view), project.toml, .cf primitives, AGENTS.md in a CAD project, or
+  CAD-as-code drawing pipelines.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "0.8.0"
+  version: "0.9.0"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-06-18"
+  last_updated: "2026-06-28"
 ---
 
-# cadforge skill
+# cadspec skill
 
-cadforge is a Rust CLI + library for CAD as code. Geometry is
+cadspec is a Rust CLI + library for CAD as code. Geometry is
 declared in `.cf` TOML layers orchestrated by `project.toml`, compiles
 deterministically to DXF, and renders faithful previews (real text, measured
 dimension labels, hatches) so both humans and AI agents can *see* the drawing.
@@ -27,25 +27,25 @@ dimension labels, hatches) so both humans and AI agents can *see* the drawing.
 ## When to use
 
 Use this skill when the task involves:
-- creating or initializing a cadforge project
+- creating or initializing a cadspec project
 - editing `.cf` primitives and validating the project
-- live-previewing while editing (`cadforge serve`)
+- live-previewing while editing (`cadspec serve`)
 - compiling layers to DXF or generating PNG/SVG previews
 - visually verifying edits with entity highlights
 - importing an existing DXF into `.cf` layers
-- implementing or debugging cadforge CLI/library features
+- implementing or debugging cadspec CLI/library features
 
 ## The vibecoding loop (human watching)
 
 ```bash
-cadforge new mi-proyecto && cd mi-proyecto
-cadforge serve                 # live preview on http://127.0.0.1:4377
+cadspec new mi-proyecto && cd mi-proyecto
+cadspec serve                 # live preview on http://127.0.0.1:4377
 # serve DAEMONIZES by default: it prints the URL + pid and returns (the
 # server keeps running in the background — it does NOT block the shell).
 # Then open the URL in a browser. edit .cf files — the browser refreshes
 # ~80ms after every save; parse errors appear as an overlay.
-cadforge serve --stop          # stop the background server for this project
-cadforge serve --foreground    # opt-in: stay attached, stream logs, Ctrl+C to stop
+cadspec serve --stop          # stop the background server for this project
+cadspec serve --foreground    # opt-in: stay attached, stream logs, Ctrl+C to stop
 ```
 
 Viewer features:
@@ -58,45 +58,45 @@ Viewer features:
 - `3D` button (or key `3`): real extruded 3D view — primitives with an
   `extrude` height become solids/walls (see `.cf format essentials`)
 
-`serve` renders SVG only; run `cadforge build` when you need the DXF.
+`serve` renders SVG only; run `cadspec build` when you need the DXF.
 
 ## The agent feedback loop (autonomous editing)
 
-1. `cadforge schema` — dump the complete `.cf` language reference (markdown);
-   this is the single source of truth for the format, straight from the CLI.
+1. `cadspec schema` — dump the complete `.cf` language reference (markdown).
+   If a project lacks an `AGENTS.md`, generate one with `cadspec schema > AGENTS.md`.
 2. Edit `.cf` files.
-3. `cadforge check --json` — machine-readable validation: layers, entity
+3. `cadspec check --json` — machine-readable validation: layers, entity
    counts, constraint violations, `strict` flag. Non-zero exit if strict+violations.
-4. `cadforge preview` — writes `preview.png` (faithful render) and
+4. `cadspec preview` — writes `preview.png` (faithful render) and
    `preview.meta.json` mapping every entity id to world **and pixel** bounding
    boxes (plus text content). **Look at the image** to verify the result.
-5. `cadforge preview --highlight ln-001,tx-002` — re-render with labeled amber
+5. `cadspec preview --highlight ln-001,tx-002` — re-render with labeled amber
    dashed markers around those ids to confirm an edit landed where intended.
    Unknown ids are ignored silently.
-6. `cadforge preview --3d` — render the extruded 3D view to `preview.png`
+6. `cadspec preview --3d` — render the extruded 3D view to `preview.png`
    (axonometric). **Look at the image** to verify heights/elevations.
 
 ## Core commands
 
 ```bash
-cadforge new <name>                 # scaffold a multi-layer project
-cadforge init                       # scaffold into current directory
-cadforge serve [--port N] [--open]  # live preview server (default port 4377);
+cadspec new <name>                 # scaffold a starter project (shapes/curves/annotations)
+cadspec init                       # scaffold into current directory
+cadspec serve [--port N] [--open]  # live preview server (default port 4377);
                                     # DAEMONIZES by default (returns immediately)
-cadforge serve --stop               # stop this project's background server
-cadforge serve --foreground         # run attached (blocks; Ctrl+C to stop)
-cadforge build [--layer <name>] [--output <file>] [--check]
-cadforge check [--json]
-cadforge layers [--json]
-cadforge schema                     # full .cf reference for agents
-cadforge preview [--width <px>] [-H <px>] [--layer <name>]
+cadspec serve --stop               # stop this project's background server
+cadspec serve --foreground         # run attached (blocks; Ctrl+C to stop)
+cadspec build [--layer <name>] [--output <file>] [--check]
+cadspec check [--json]
+cadspec layers [--json]
+cadspec schema                     # full .cf reference for agents
+cadspec preview [--width <px>] [-H <px>] [--layer <name>]
                  [--format png|svg|all] [--highlight id1,id2] [--3d]
                  [--plano <name>]   # render a drawing sheet (see project.toml)
-cadforge fmt [--check]
-cadforge watch                      # auto-rebuild DXF on save
-cadforge import <file.dxf> [--layer <name>]
-cadforge view [--layer <name>]      # open DXF in external viewer
-cadforge config set|show            # global defaults (author, units)
+cadspec fmt [--check]
+cadspec watch                      # auto-rebuild DXF on save
+cadspec import <file.dxf> [--layer <name>]
+cadspec view [--layer <name>]      # open DXF in external viewer
+cadspec config set|show            # global defaults (author, units)
 ```
 
 All project commands accept `--path <dir>` to run outside the project directory.
@@ -106,7 +106,7 @@ All project commands accept `--path <dir>` to run outside the project directory.
 Primitives: `line`, `polyline`, `rect`, `circle`, `arc`, `text`, `point`,
 `dim`, `hatch`, `fill`, `group`, plus construction tools `array` (linear /
 polar — spiral stairs, gears, repeated columns) and `mirror`. Run
-`cadforge schema` for every attribute — do not guess fields from memory.
+`cadspec schema` for every attribute — do not guess fields from memory.
 
 ```toml
 [layer]                 # optional per-file metadata
@@ -183,7 +183,7 @@ cotas.belongs_to = "muros"      # children reference parent ids via belongs_to
 
 # Planos (drawing sheets / "ventanas"): named views of the one model, framed at
 # a paper size with a title block (rótulo). Listed in the viewer's Planos panel
-# (under Layers); render with `cadforge preview --plano <name>`.
+# (under Layers); render with `cadspec preview --plano <name>`.
 [[plano]]
 name = "P-01"
 view = "plan"           # plan | iso | front | back | left | right | top | section
@@ -207,19 +207,19 @@ keep = "min"            # min (default) keeps ≤ side, max keeps ≥ side
   the image keeps the content aspect ratio.
 - `text.size` is in world units (e.g. `0.25` for a 25cm-tall label at units = m),
   not font points.
-- `cadforge check` validates only; `build --check` is equivalent. Neither writes DXF.
+- `cadspec check` validates only; `build --check` is equivalent. Neither writes DXF.
 - Generated artifacts (`output.dxf`, `preview.png`, `preview.svg`,
   `preview.meta.json`) are gitignored — never hand-edit them.
 - Text rendering uses an embedded DejaVu Sans Mono: previews are deterministic and
   work in containers with no system fonts.
 - `serve` watches `.cf`/`.toml` only and renders SVG; it does not write DXF.
-  It runs as a background daemon by default (pid + log under `.cadforge/`);
-  do not wrap it in your own `&`/`nohup`, and stop it with `cadforge serve --stop`.
+  It runs as a background daemon by default (pid + log under `.cadspec/`);
+  do not wrap it in your own `&`/`nohup`, and stop it with `cadspec serve --stop`.
 - `[[array]]`/`[[mirror]]` expand at build time; generated copies have ids
   like `base@3` / `base@m`. To change all copies, edit the base entity or the
   array/mirror block — generated ids do not exist in the source files.
-- Geometry is authored in 2D plan coordinates, but cadforge HAS a real 3D view
-  (`cadforge preview --3d`, viewer `3D` button):
+- Geometry is authored in 2D plan coordinates, but cadspec HAS a real 3D view
+  (`cadspec preview --3d`, viewer `3D` button):
   - **Extrusion** — give a 2D primitive an `extrude` height (+ optional
     `elevation`): closed shapes → prisms/cylinders, lines/open polylines → walls.
   - **Solids + CSG booleans** — `[[solid]]` (box/cylinder) combined with
@@ -230,4 +230,4 @@ keep = "min"            # min (default) keeps ≤ side, max keeps ≥ side
   FreeCAD). What is NOT supported: a B-rep feature tree / interactive
   sketch-on-a-face workflow (select a face of a result, draw, pad/pocket) —
   position the cutting solid by coordinates instead. For constraints/import
-  edge cases, check `cadforge-spec.md` in the repo before promising behavior.
+  edge cases, check `cadspec-spec.md` in the repo before promising behavior.

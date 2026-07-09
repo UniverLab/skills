@@ -11,13 +11,13 @@
 
 [skills.execution-mindset]
 
-[skills.workflow-design]
+[skills.loop-design]
 
 [skills.texforge]
 requires = "texforge"
 
-[skills.cadforge]
-requires = "cadforge"
+[skills.cadspec]
+requires = "cadspec"
 
 [skills.demostage]
 requires = "demo"

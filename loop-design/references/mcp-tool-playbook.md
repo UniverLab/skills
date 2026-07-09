@@ -6,13 +6,46 @@ Recommended tool order for creating and refining Canopy loops with the currently
 
 ## Create a New Loop
 
-1. `loop_create`
+1. `loop_create` — set `trigger` here if the loop should fire on its own (see below); omit it for a manual-only loop
 2. `loop_add_spec` for each ordered spec
 3. `loop_add_node` for each node inside the spec
 4. `loop_add_edge` for routing
 5. `loop_get` to verify the final shape
 6. summarize the graph to the user
-7. `loop_run` only after explicit approval or direct instruction
+7. `loop_run` only after explicit approval or direct instruction — not needed at all if a cron/watch trigger will fire it
+
+---
+
+## Setting a Trigger (cron / watch / manual)
+
+`loop_create` and `loop_update` both take an optional `trigger` object (`LoopTriggerParams`). Omit it on create for a manual loop; omit it on update to leave the current trigger untouched.
+
+| Field | Applies to | Notes |
+|---|---|---|
+| `kind` | all | `"cron"`, `"watch"`, or `"manual"`. `"manual"` (or empty) clears any existing trigger. |
+| `schedule` | cron | 5-field cron expression, required when `kind = "cron"`. Evaluated in local wall-clock time, same as agent triggers. |
+| `path` | watch | Absolute path to a file or directory, required when `kind = "watch"`. |
+| `events` | watch | List of `"create"`, `"modify"`, `"delete"`, `"move"`, or `"all"`. Required (non-empty) when `kind = "watch"`. |
+| `debounce_seconds` | watch | Optional, default `2`. |
+| `recursive` | watch | Optional, default `false`. |
+
+Example — nightly cron loop:
+
+```json
+{
+  "name": "nightly-docs-sync",
+  "workdir": "/home/user/project",
+  "trigger": { "kind": "cron", "schedule": "0 2 * * *" }
+}
+```
+
+Example — clearing a trigger back to manual via `loop_update`:
+
+```json
+{ "loop_id": "...", "trigger": { "kind": "manual" } }
+```
+
+A fireable loop (cron/watch) will not re-trigger itself while it is already `Running` or `Paused` — no need to guard against overlapping runs when designing the graph.
 
 ---
 
@@ -79,3 +112,32 @@ Recommended tool order for creating and refining Canopy loops with the currently
 | Skip to next spec | `loop_continue(action="skip_next_spec")` |
 | Node reports success/failure | `loop_complete_node` |
 | Node blocked, needs human | `loop_report_blocker` |
+| Resume a loop once, at an exact time | `loop_schedule_autorun(loop_id, at)` |
+| Re-enable a disabled agent once, at an exact time | `agent_schedule_enable(id, at)` |
+
+### `loop_add_node` — `config` must be an object
+
+`config` is typed as a JSON object. Passing a JSON-*encoded string* is rejected at
+parse time. Required keys by kind: `agent` → `platform`; `check` → `command`;
+`gate` → `value`. Two defaults worth overriding:
+
+- `check.timeout_seconds` defaults to **120** — far too low for a real test suite.
+- `agent.timeout_minutes` defaults to 30.
+
+Nodes have no `position` parameter: **position follows insertion order**, and the
+engine treats the lowest-position node as the entry when no source node exists. Add
+the starting node first.
+
+### Resume semantics (the part that surprises people)
+
+- `loop_run` **refuses** `completed` and `failed` loops (`"cannot be resumed yet"`).
+- `loop_continue` acts **only** on `paused` loops.
+- Scheduled triggers (`autorun_at`, cron) call the engine directly and **bypass that
+  guard**, so they *will* resume a `failed` loop — resuming at the first
+  non-completed spec, since completed specs are skipped.
+- `run_loop` reads the spec list **once at launch**. A spec added to a running loop
+  does not execute in that pass.
+
+Prefer `loop_schedule_autorun` over a recurring cron when you know *when* the
+blocker clears (a quota reset, a nightly window). A cron retries blindly and each
+blind attempt consumes the target node's iteration budget.

@@ -1,84 +1,97 @@
-# Skills 🧠
+# Skills
 
-Catálogo de habilidades de UniverLab para agentes de IA
+Catalog of UniverLab skills for AI agents.
 
 ---
 
-## ✨ Habilidades
+## Skills
 
 ### execution-mindset
-Modo operativo por defecto: verifica antes de reportar, piensa antes de actuar, detecta riesgos y mantiene respuestas/acciones eficientes.
+Default operating mode: verify before reporting, think before acting, detect risks, and keep responses/actions efficient.
 
 ```bash
 git clone https://github.com/UniverLab/skills.git
-# o como submodulo
+# or as a submodule
 git submodule add https://github.com/UniverLab/skills.git skills
 ```
 
 ### code-engineering
-Skill de implementacion y refactor con criterio estructural: limites claros, patrones solo cuando aportan, y codigo mantenible en cualquier lenguaje.
+Implementation and refactoring skill with structural judgment: clear boundaries, patterns only when they add value, and maintainable code in any language.
 
 ```bash
 git clone https://github.com/UniverLab/skills.git
-# o como submodulo
+# or as a submodule
 git submodule add https://github.com/UniverLab/skills.git skills
 ```
 
-### workflow-design
-Disena procesos multi-step como workflows reutilizables de Canopy con specs, grafos y nodos `agent/check/gate`, ajustados al tooling MCP disponible.
+### loop-design
+Design multi-step processes as reusable Canopy loops with specs, graphs, and `agent/check/gate` nodes, aligned to the available MCP tooling.
 
 ```bash
 git clone https://github.com/UniverLab/skills.git
-# o como submodulo
+# or as a submodule
 git submodule add https://github.com/UniverLab/skills.git skills
 ```
 
 ### texforge
-CLI para compilar documentos LaTeX a PDF sin TeX Live, MiKTeX ni dependencias externas. Usa tectonic como motor interno.
+CLI to compile LaTeX documents to PDF without TeX Live, MiKTeX, or external dependencies. Uses tectonic as the internal engine.
 
 ```bash
-# Instalación manual
+# Manual installation
 npx skills add https://github.com/UniverLab/skills --skill texforge
 
-# O copiar directamente
+# Or copy directly
 cp -r skills/texforge ~/.agents/skills/
 ```
 
-> **Nota:** Requiere `texforge` en PATH. Se instala automáticamente durante el setup de Canopy solo si el binario está disponible.
+> **Note:** Requires `texforge` in PATH. Installed automatically during Canopy setup only if the binary is available.
 
-### cadforge
-CLI de CAD como código: geometría declarativa en archivos `.cf` (TOML), compilada a DXF con preview PNG.
+### cadspec
+CLI for CAD as code: declarative geometry in `.cf` files (TOML), compiled to DXF with PNG preview.
 
 ```bash
-# Instalación manual
-npx skills add https://github.com/UniverLab/skills --skill cadforge
+# Manual installation
+npx skills add https://github.com/UniverLab/skills --skill cadspec
 
-# O copiar directamente
-cp -r skills/cadforge ~/.agents/skills/
+# Or copy directly
+cp -r skills/cadspec ~/.agents/skills/
 ```
 
-> **Nota:** Requiere `cadforge` en PATH. Se instala automáticamente durante el setup de Canopy solo si el binario está disponible.
+> **Note:** Requires `cadspec` in PATH. Installed automatically during Canopy setup only if the binary is available.
+
+### demostage
+CLI for making terminal demos as reproducible code. Capture, record, export to gif/mp4.
+
+```bash
+# Manual installation
+npx skills add https://github.com/UniverLab/skills --skill demostage
+
+# Or copy directly
+cp -r skills/demostage ~/.agents/skills/
+```
+
+> **Note:** Requires `demo` in PATH. Installed automatically during Canopy setup only if the binary is available.
 
 ---
 
-## 📦 Estructura
+## Structure
 
-Cada habilidad sigue esta estructura:
+Each skill follows this structure:
 
 ```
 skill-name/
-├── SKILL.md          # Definición principal
-├── README.md         # Documentación completa
-├── LICENSE           # Licencia MIT
-└── references/       # Documentación de referencia
-    ├── *.md          # Guías prácticas y ejemplos
+├── SKILL.md          # Main definition
+├── README.md         # Full documentation
+├── LICENSE           # MIT License
+└── references/       # Reference documentation
+    ├── *.md          # Practical guides and examples
 ```
 
 ---
 
-## 🔧 Uso
+## Usage
 
-Referencia estas habilidades en tu configuración de agente:
+Reference these skills in your agent configuration:
 
 ```yaml
 skills:
@@ -93,26 +106,26 @@ skills:
       - "review code"
       - "design pattern"
 
-  - name: workflow-design
-    path: skills/workflow-design/SKILL.md
+  - name: loop-design
+    path: skills/loop-design/SKILL.md
     triggers:
-      - "create workflow"
-      - "plan workflow"
+      - "create loop"
+      - "plan loop"
       - "orchestrate agents"
 ```
 
 ---
 
-## 📝 Contribuir
+## Contributing
 
-Contribuciones bienvenidas! Sigue estas guías:
+Contributions welcome! Follow these guidelines:
 
-1. **Una habilidad por directorio**
-2. **Documentación clara** — Explica cuándo y cómo usar la habilidad
-3. **Ejemplos prácticos** — Incluye código y escenarios reales
-4. **Licencia MIT** — Todas las contribuciones deben ser MIT
-5. **Progressive disclosure** — Mantén `SKILL.md` enfocado y mueve detalle opcional a `references/`
+1. **One skill per directory**
+2. **Clear documentation** — Explain when and how to use the skill
+3. **Practical examples** — Include code and real scenarios
+4. **MIT License** — All contributions must be MIT
+5. **Progressive disclosure** — Keep `SKILL.md` focused, move optional detail to `references/`
 
 ---
 
-*Created with ❤️ by [JheisonMB](https://github.com/JheisonMB) and [UniverLab](https://github.com/UniverLab)*
+*Created with by [JheisonMB](https://github.com/JheisonMB) and [UniverLab](https://github.com/UniverLab)*
