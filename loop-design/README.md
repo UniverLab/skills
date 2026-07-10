@@ -82,6 +82,8 @@ Execution flow:
 - `loop_run`
 - `loop_pause`
 - `loop_continue`
+- `loop_schedule_autorun` — resume a loop once, at an exact time (no polling)
+- `agent_schedule_enable` — re-enable a background agent once, at an exact time
 
 ---
 

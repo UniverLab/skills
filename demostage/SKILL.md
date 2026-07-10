@@ -2,26 +2,27 @@
 name: demostage
 description: >
   CLI tool for making terminal demos as reproducible code ("Demos as Code"). Use this skill whenever the
-  user wants to record, normalize, validate or export a terminal demo, author a demo.toml score, produce a
-  cast/html/gif/mp4 of a CLI session, or compose a terminal pane next to a browser/PDF pane. Activate when
-  the user mentions "demo record", "demo normalize", "demo check", "demo export", demo.toml, macro.raw.toml,
-  recording a CLI demo, asciinema/gif/mp4 of a terminal, DemoStage, or a multi-scene terminal+browser demo.
+  user wants to capture, record, export, or edit a terminal demo, author a demo.toml score, produce a
+  gif/mp4 of a CLI session, compose a terminal pane next to a browser/PDF pane, or manage sources and
+  scenes. Activate when the user mentions "demo capture", "demo record", "demo export", "demo edit",
+  demo.toml, macro.raw.toml, recording a terminal demo, gif/mp4 of a terminal, DemoStage, or a
+  multi-scene terminal+browser demo.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "0.1"
+  version: "0.2"
   framework: OpenCode
   category: cli-tool
-  last_updated: "2026-06-18"
+  last_updated: "2026-06-28"
 ---
 
 # DemoStage CLI (`demo`)
 
 Turns terminal demos into reproducible engineering. Records a session as **events**, normalizes human
-imperfections into a clean **score** (`demo.toml`), and compiles that score to `cast`, `html`, `gif` or
-`mp4`. A demo becomes a version-controlled, re-runnable file. Heavy tools are auto-provisioned
-tectonic-style: `mp4` fetches a managed **ffmpeg** and browser panes fetch **Chromium** on first use (a
-system install is used if present).
+imperfections into a clean **score** (`demo.toml`), executes that score to produce a **recording**
+(`.rec`), and compiles recordings to `gif` or `mp4`. A demo becomes a version-controlled, re-runnable
+file. Heavy tools are auto-provisioned tectonic-style: `mp4` fetches a managed **ffmpeg** and browser
+panes fetch **Chromium** on first use (a system install is used if present).
 
 ## Installation
 
@@ -35,17 +36,39 @@ cargo install --path .
 ## The loop
 
 ```
-demo record ──> macro.raw.toml ──> demo normalize ──> demo.toml ──> demo check ──> demo export
+demo capture ──> macro.raw.toml ──> demo.toml ──> demo record ──> demo.rec ──> demo export ──> gif/mp4
 ```
 
 | Command | Does |
 |---|---|
-| `demo record [-o macro.raw.toml] [--idle-timeout-ms N] [--shell S]` | Capture an interactive PTY session. Stop with `exit`/Ctrl-D or on idle. |
-| `demo normalize [in] [-o demo.toml] [--seed N] [--typing-ms 80] [--salt-ms 15]` | Prune typos, humanize typing, trim idle → clean score. |
-| `demo check [demo.toml]` | Static validation. Exit 0 valid, 1 invalid. |
-| `demo export [demo.toml] --target <cast\|html\|gif\|mp4> [-o PATH]` | Compile the score. |
+| `demo capture [--font F] [--into stage] [--raw file] [-O score]` | Capture an interactive PTY session. Produces a raw macro and normalizes to a score. Stop with `exit`/Ctrl-D or on idle. |
+| `demo record [-i demo.toml] [-o demo.rec]` | Execute a score in a PTY to (re)produce a recording. |
+| `demo export [gif,mp4] [-i demo.rec] [--speed 2x] [--force]` | Render a recording to formats. `--force` renders a raw capture directly. |
+| `demo edit [demo.toml]` | Interactively edit timing/wait steps in a score. |
+| `demo doctor` | Check the environment for browser/video dependencies and report fixes. |
 
-You can skip record/normalize and **author `demo.toml` by hand**, then `check` + `export`.
+You can skip capture and **author `demo.toml` by hand**, then `record` + `export`.
+
+## In-capture commands
+
+During `demo capture`, these commands are intercepted from stdin and never appear in the recording:
+
+| Command | Does |
+|---|---|
+| `/stop` | End the capture session |
+| `/focus <scene>` | Switch to a different scene (e.g. `/focus browser`) |
+
+## Sources and scenes
+
+Demos are composed of **sources** (content elements) and **scenes** (compositions/layouts):
+
+- **Sources**: `TerminalSource`, `BrowserSource`, `PdfSource` — individual content panes
+- **Scenes**: named compositions that arrange sources using layout strings
+
+Layout string format:
+- `"main+google"` — 50/50 split
+- `"main+google+github"` — thirds
+- `"main*2+google"` — weighted (2:1)
 
 ## demo.toml (the DSL)
 
@@ -64,6 +87,8 @@ width = 1280
 height = 720
 fps = 15
 background = "#0b0f14"
+font_family = "DejaVu Sans Mono"
+font_size = 14
 
   [[layout.panes]]
   id = "console"
@@ -97,12 +122,11 @@ action = "terminate"
 
 Timeline actions: `focus` (set active pane), `type` (`text`, `human_salt?`), `keypress` (`key`), `wait`
 (`duration_ms`), `caption` (`text` — on-canvas step label for gif/mp4; empty clears), `wait_for_stdout`
-(`match`, `pane?`), `scroll` (browser: `direction`, `duration_ms`), `terminate`.
+(`match`, `pane?`), `scroll` (browser: `direction`, `duration_ms`), `focus_scene` (`scene`), `terminate`.
 
 ## Multi-scene (terminal + browser)
 
 Add a `browser` pane (a PDF viewer or live web preview) beside the terminal; `gif`/`mp4` composite both.
-`cast`/`html` are text-only and reject browser panes.
 
 ```toml
   [[layout.panes]]
@@ -123,15 +147,29 @@ direction = "down"
 duration_ms = 3000
 ```
 
+## Fonts
+
+DemoStage bundles 5 fonts for Unicode coverage in exports:
+
+| Font | Unicode coverage |
+|---|---|
+| DejaVu Sans Mono (default) | 13/14 blocks |
+| Liberation Mono | 12/14 blocks |
+| JetBrains Mono | 11/14 blocks |
+| IBM Plex Mono | 10/14 blocks |
+| Ubuntu Mono | 6/14 blocks |
+
+Use `--font` during capture to pick interactively, or pass `--font "JetBrains Mono"` to skip the wizard.
+
 ## Notes for agents
 
-- Always `demo check` a score before `demo export`; fix every reported problem.
-- **Secrets:** `demo record` redacts input typed at password/passphrase prompts (it's
+- Always `demo record` a score before `demo export`; `export` plays back a `.rec`, it does not execute the score.
+- **Secrets:** `demo capture` redacts input typed at password/passphrase prompts (it's
   forwarded but never recorded). It's a heuristic — review the macro/score before
   sharing, and prefer non-interactive bypasses (e.g. `GITHUB_TOKEN` for ghScaff) for
   secret flows. Secrets a program *prints* to stdout are not redacted; edit them out.
-- For a clean recording, DemoStage forces `PS1='$ '` during export, so demos never leak `user@host`.
-- `cast`/`html`/`gif` are pure-Rust and offline. `mp4` auto-fetches ffmpeg; browser panes auto-fetch
+- For a clean recording, DemoStage forces `PS1='$ '` during capture, so demos never leak `user@host`.
+- `gif`/`mp4` are the export targets. `mp4` auto-fetches ffmpeg; browser panes auto-fetch
   Chromium (or use a system install). If a download is blocked, install the tool via the package manager.
 - Scrolling Chrome's built-in **PDF** viewer is best-effort; for reliable PDF paging prefer a web preview or
   page fragments. Web pages scroll normally.
@@ -143,3 +181,4 @@ duration_ms = 3000
   the runner provide it (e.g. `GITHUB_TOKEN` for ghScaff). `check` fails if a required var is unset.
 - Use `caption` steps to overlay step labels on the canvas (gif/mp4); add a `wait` after one to hold it.
 - Use `[typing].seed` whenever the output must be byte-stable (CI, golden files).
+- In-capture `/stop` and `/focus <scene>` are intercepted from stdin and never reach the PTY or recording.

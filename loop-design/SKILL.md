@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.3"
-  framework: OpenCode
+  version: "1.7"
+  framework: Canopy
   category: loop-orchestration
-  last_updated: "2026-05-23"
+  last_updated: "2026-07-09"
 ---
 
 # Loop Design
@@ -99,6 +99,16 @@ Before you create or run a loop, clarify:
 - whether commits are allowed inside the loop
 - whether blockers should pause or hard-fail the loop
 
+### 4b. A loop does not have to be run by hand
+
+A loop can be scheduled to fire on its own, the same way background agents can. `loop_create`/`loop_update` accept an optional `trigger` — a loop is not limited to `loop_run` on demand:
+
+- **manual** (default) — the loop only starts when someone calls `loop_run`. Clearing a trigger (or omitting it on create) keeps this mode.
+- **cron** — fires on a 5-field cron expression, evaluated in the same **local wall-clock** frame as agent triggers (not UTC).
+- **watch** — fires when a file or directory changes (create/modify/delete/move, or "all"), with a debounce window.
+
+Ask the user which mode fits before creating the loop: a one-off migration is almost always manual; a recurring maintenance sweep (nightly cleanup, "re-run docs sync whenever the schema file changes") is a candidate for cron or watch. See **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** for the exact `trigger` fields.
+
 ### 5. Reuse patterns, adapt prompts
 
 Reuse graph patterns from the reference docs, but adapt:
@@ -151,6 +161,16 @@ Typical choices:
 - **review loop:** `agent -> review -> gate -> agent`
 - **verify loop:** `agent -> check -> gate -> agent`
 - **finish gate:** `agent/check -> gate(pass_route=next_spec)`
+- **gated implement:** `implement --pass--> check -> reviewer/committer`
+  (see pattern 7 in the reference — the shape that stops a dead implement from
+  reaching the reviewer)
+- **resilience branch:** add `implement --fail--> resilience` so a failed
+  implement is *triaged* instead of silently ending the spec (pattern 8)
+
+**Route the implement's success edge with `pass`, never `always`.** An `always`
+edge sends a *failed* implement (crash, quota exhaustion) straight to the reviewer,
+which then approves work that does not exist. This is not hypothetical: it marked
+specs `completed` with no commit behind them.
 
 ### Step 4 — Persist via MCP tools
 
