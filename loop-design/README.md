@@ -118,4 +118,27 @@ MIT © Jheison Martinez
 
 ## Version
 
+1.8 (2026-07-10)
+
+- **Recovery Matrix** (mcp-tool-playbook.md) — how to move a loop out of every
+  status, including `failed` (no direct tool yet; the `loop_schedule_autorun`
+  bypass) and the post-restart `running` zombie (`loop_pause` → `loop_continue`;
+  autorun cannot fire on `Running`).
+- **Core Rule 6 + Graph Validation** (SKILL.md) — design for the process dying
+  mid-run; the nine fatal graph shapes, each learned from a real broken run.
+- **Pools are storage-only** (mcp-tool-playbook.md) — and the R1–R7 redesign
+  replacing them: loop-level graph (the reusable team), standalone spec backlog,
+  run-time pools, live pool mutation, node blueprints.
+- **English prompts** — spec descriptions and node templates now default to
+  English.
+
+1.7 (2026-07-09) — restored after a stale skills-sync clobbered it; never committed
+
+- **Graph Validation** (SKILL.md) — the fatal shapes: entry node, ambiguous edges,
+  `config` typing, `check` timeout default, gate matching on serialized JSON.
+- **Patterns 7 & 8** (loop-patterns.md) — *Gated Implement* and the
+  *Resilience Branch* that triages a failed implement and schedules its own resume.
+- **Resume semantics** (mcp-tool-playbook.md) — why `loop_run` refuses failed loops
+  but a scheduled trigger does not.
+
 1.2 (2026-05-13)

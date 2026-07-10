@@ -77,5 +77,49 @@ Recommended tool order for creating and refining Canopy loops with the currently
 | Halt after current node | `loop_pause` |
 | Retry current node | `loop_continue(action="retry_current_node")` |
 | Skip to next spec | `loop_continue(action="skip_next_spec")` |
+| Resume once at an exact future time | `loop_schedule_autorun(loop_id, at)` |
+| Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
 | Node reports success/failure | `loop_complete_node` |
 | Node blocked, needs human | `loop_report_blocker` |
+
+---
+
+## Recovery Matrix (loop status → how to move it)
+
+Learned from real incidents; each row was needed at least once.
+
+| Loop state | How to recover |
+|---|---|
+| `draft` / `pending` | `loop_run` |
+| `paused` | `loop_continue` (`retry_current_node` or `skip_next_spec`) |
+| `running` but the daemon restarted (zombie: no child process behind it) | `loop_pause`, then `loop_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. |
+| `failed` | No direct tool yet — `loop_run` refuses it. Workaround: `loop_schedule_autorun` at now+2min; scheduled triggers call the engine directly and bypass the guard. A spec left `running` resumes at its last node, so nothing is re-implemented. |
+| `completed` | Same `loop_schedule_autorun` bypass if a re-run is genuinely needed. |
+
+Two asymmetries worth knowing:
+
+- **`loop_run` freezes the spec list at launch; `loop_continue` re-reads it.** Adding
+  a spec and then resuming with `loop_continue` picks it up; adding one mid-`loop_run`
+  does not.
+- A commit-check that keys on a marker file (e.g. `.git/canopy-prev-head`) survives
+  daemon/PC restarts pointing at a stale HEAD. Delete the marker in pre-flight, and
+  only resume at or before the gates node that rewrites it.
+
+---
+
+## Pools: storage-only (until the redesign lands)
+
+`loop_pool_*` tools persist pool data, but **the engine does not consume pools yet**.
+The in-flight redesign (specs R1–R7 of `canopy-bugs-memory`) replaces this model with:
+loop-level graph (the reusable "team"), a standalone spec backlog (`spec_create/list`),
+run-time pools (`loop_run {loop_id, pool_id, workdir}`), live mutation of a running
+pool, and a node blueprint inventory. Once it lands, a loop is built once (~13 calls)
+and reused across pools and workdirs.
+
+---
+
+## Language
+
+Write spec descriptions and node prompt templates in **English** — models follow
+English instructions more reliably, and the reviewer/implementer contract gets
+stricter compliance.
