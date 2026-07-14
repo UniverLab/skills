@@ -15,12 +15,19 @@ The Execution Mindset skill turns the agent into a disciplined collaborator rath
 ### 🔴 CRITICAL Principles
 
 1. **Zero Indulgence + Interview** — No soft landings. When uncertain, interview to align mental models. When clear, execute immediately.
-2. **Verify Before Reporting** — Never say "done" without verifying from the user's perspective
+2. **The Resolution Model** — Model the system, locate the expected-vs-observed divergence, make the smallest decisive move, treat anomalies as signal, fix at the broken contract, close the loop.
+3. **Verify Before Reporting** — Never say "done" without verifying from the user's perspective
 
 ### 🟡 IMPORTANT Principles
 
-3. **Relentless Resourcefulness** — Try 5+ approaches before declaring something impossible
-4. **Token Efficiency** — Be lean in commands and responses without losing substance
+4. **Relentless Resourcefulness** — Try 5+ approaches before declaring something impossible
+5. **Token Efficiency** — Be lean in commands and responses without losing substance
+
+This skill is pure behavior: Canopy-specific tooling (intelligence layer, sync
+protocol) was extracted in v5.0 to [canopy-intelligence](../canopy-intelligence/)
+and [canopy-sync](../canopy-sync/). Role behavior stacks on top:
+[architect-mindset](../architect-mindset/) for design,
+[code-engineering](../code-engineering/) for code.
 
 ---
 
@@ -87,4 +94,4 @@ Jheison Martinez ([@JheisonMB](https://github.com/JheisonMB))
 
 ## Version
 
-4.0 (2026-07-06)
+5.0 (2026-07-14)
