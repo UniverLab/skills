@@ -1,4 +1,4 @@
-# Loop Design Skill
+# Canopy Loop Design Skill
 
 **Loop orchestration skill** for turning multi-step work into reusable Canopy graphs with real MCP tooling constraints.
 
@@ -49,7 +49,7 @@ Use it when the user asks to:
 ## Skill Structure
 
 ```
-loop-design/
+canopy-loop-design/
 ├── SKILL.md              # Main skill definition
 ├── README.md             # This file
 ├── LICENSE               # MIT License
@@ -94,8 +94,8 @@ Reference it from agent configuration:
 
 ```yaml
 skills:
-  - name: loop-design
-    path: skills/loop-design/SKILL.md
+  - name: canopy-loop-design
+    path: skills/canopy-loop-design/SKILL.md
     triggers:
       - "create loop"
       - "plan loop"

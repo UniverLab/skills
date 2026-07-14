@@ -17,13 +17,16 @@
 
 # Canopy tooling — only useful where the Canopy MCP server runs
 
+[skills.canopy-capabilities]
+requires = "canopy"
+
 [skills.canopy-intelligence]
 requires = "canopy"
 
 [skills.canopy-sync]
 requires = "canopy"
 
-[skills.loop-design]
+[skills.canopy-loop-design]
 requires = "canopy"
 
 # Tool skills — bound to their CLI

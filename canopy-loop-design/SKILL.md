@@ -1,5 +1,5 @@
 ---
-name: loop-design
+name: canopy-loop-design
 description: >
   Use this skill when the user wants to turn a recurring or multi-step process
   into a reusable Canopy loop, write specs for a backlog or pool, inspect or
@@ -140,6 +140,34 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
 - Give failure knowledge somewhere to go: a resilience branch (pattern 8)
   that triages the failed implement — quota deaths schedule their own
   autorun instead of silently losing the reset time.
+
+### 6b. Who supervises the loop — the recovery hierarchy
+
+There are three places recovery logic can live. Order them by determinism,
+and push each responsibility as far up this list as it can go:
+
+1. **Engine guards (deterministic, always right):** boot reconcile of zombie
+   runs, empty-spec-set launch errors, stale-spec recovery, pool-aware
+   autoruns. Anything expressible as a state-machine rule belongs HERE, in
+   the daemon — not in any agent's prompt.
+2. **The in-graph resilience node (LLM, language only):** its unique value is
+   reading prose the engine can't parse — "resets 5:10pm" — and converting it
+   into one scheduling call. Keep it on a platform that reliably COMPLETES
+   runs; a resilience that times out is a resilience that doesn't exist.
+3. **An external watcher agent (LLM on cron): last resort, and know the cost.**
+   Field evidence from running one at scale: it saved two overnight runs, and
+   it also *falsely completed* a loop by relaunching without its pool, left
+   another stuck in `draft` by resetting and never relaunching, mangled its
+   own report JSON for hours, and burned a run every 15 minutes to conclude
+   "healthy". An LLM watcher acts on state it half-understands with tools
+   that let it half-recover. If you deploy one anyway: give it a closed
+   decision table, forbid every mutating call not in that table (especially
+   pool-less `loop_run`), and prefer wiring its enable/disable to the
+   resilience node so it only lives during recovery windows.
+
+Rule of thumb: **no LLM in the deterministic part of the critical path.**
+When you catch a watcher doing state-machine work, that work is an engine
+feature request — file it, don't re-prompt.
 
 ---
 

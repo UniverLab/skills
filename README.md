@@ -50,7 +50,12 @@ persist facts/patterns/summaries with `intelligence_upsert`.
 The action-driven workspace protocol: classify actions by risk and follow the
 declare → execute → report sequence.
 
-### loop-design
+### canopy-capabilities
+Orientation map for "what can I do here?": capabilities, starter automation
+ideas, and how to discover the live tool surface without trusting a static
+list.
+
+### canopy-loop-design
 Design multi-step processes as reusable Canopy loops: the ROLE/WHAT/HOW spec
 contract, design-expensive/execute-cheap model selection, graph patterns, and
 the MCP tool playbook.
@@ -92,7 +97,7 @@ globally:
 | Node role | Pin |
 |---|---|
 | Implementer | `execution-mindset` + `code-engineering` |
-| Spec author / loop designer | `architect-mindset` + `loop-design` |
+| Spec author / loop designer | `architect-mindset` + `canopy-loop-design` |
 | Reviewer | `execution-mindset` (zero indulgence is the whole job) |
 | Any Canopy-workspace session | `canopy-intelligence`, `canopy-sync` |
 
@@ -137,8 +142,8 @@ skills:
       - "architecture"
       - "write specs"
 
-  - name: loop-design
-    path: skills/loop-design/SKILL.md
+  - name: canopy-loop-design
+    path: skills/canopy-loop-design/SKILL.md
     triggers:
       - "create loop"
       - "plan loop"
