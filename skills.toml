@@ -7,11 +7,26 @@
 #   [skills.<name>]
 #   requires = "<binary>"  # optional
 
-[skills.code-engineering]
+# Behavior family — how the agent operates (role-agnostic → role-specific)
 
 [skills.execution-mindset]
 
+[skills.architect-mindset]
+
+[skills.code-engineering]
+
+# Canopy tooling — only useful where the Canopy MCP server runs
+
+[skills.canopy-intelligence]
+requires = "canopy"
+
+[skills.canopy-sync]
+requires = "canopy"
+
 [skills.loop-design]
+requires = "canopy"
+
+# Tool skills — bound to their CLI
 
 [skills.texforge]
 requires = "texforge"
