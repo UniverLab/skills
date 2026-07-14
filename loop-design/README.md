@@ -55,6 +55,7 @@ loop-design/
 ├── LICENSE               # MIT License
 └── references/
     ├── loop-patterns.md
+    ├── graph-validation.md
     └── mcp-tool-playbook.md
 ```
 
@@ -107,7 +108,8 @@ skills:
 
 ## References
 
-- **loop-patterns.md** — examples of reusable graph shapes
+- **loop-patterns.md** — examples of reusable graph shapes + field notes from real failures
+- **graph-validation.md** — the pre-`loop_run` checklist (nine fatal shapes)
 - **mcp-tool-playbook.md** — recommended create/extend/replace flow with the current MCP toolset
 
 ---
@@ -119,6 +121,19 @@ MIT © Jheison Martinez
 ---
 
 ## Version
+
+2.0 (2026-07-14)
+
+- **Design Expensive, Execute Cheap** (SKILL.md) — author specs and graphs with
+  the most powerful model available; implement with mid-tier models; review
+  with cheap narrow prompts. Spec quality is the biggest lever on loop
+  economics.
+- **The Spec Contract: ROLE / WHAT / HOW** (SKILL.md) — every spec must be
+  executable by a colder, cheaper context than its author; embed values and
+  commands instead of pointing at them.
+- **Slimmer SKILL.md** — the nine fatal graph shapes moved to
+  `references/graph-validation.md` (progressive disclosure); construction
+  playbook condensed.
 
 1.8 (2026-07-10)
 
