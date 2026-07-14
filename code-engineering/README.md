@@ -42,8 +42,7 @@ code-engineering/
 ├── LICENSE               # MIT License
 └── references/           # Reference documentation
     ├── design-patterns.md
-    ├── clean-code-checklist.md
-    └── architecture-decision-records.md
+    └── clean-code-checklist.md
 ```
 
 ---
@@ -54,7 +53,10 @@ The `references/` directory is intentionally loaded on demand:
 
 - **design-patterns.md** — load when a real pattern decision appears
 - **clean-code-checklist.md** — load before finalizing structural changes
-- **architecture-decision-records.md** — load when comparing major architecture options
+
+For architecture decision records, use the
+[architect-mindset](../architect-mindset/) skill — the ADR reference moved
+there in v2.0.
 
 ---
 

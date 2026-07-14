@@ -9,16 +9,16 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
+  version: "2.0"
   category: agent-behavior
-  last_updated: "2026-05-13"
+  last_updated: "2026-07-14"
 ---
 
 # Code Engineering: Production-Grade Coding
 
 Write code as if it ships to production today: coherent with the existing codebase, easy to reason about, and safe to extend.
 
-This skill complements `execution-mindset`: execution-mindset governs execution discipline, while code-engineering governs structure, maintainability, and design choices.
+This is the **coder behavior** of the family: `execution-mindset` governs how you operate on any task (always on), `architect-mindset` governs design work, and code-engineering governs structure, maintainability, and design choices when the deliverable is code.
 
 ---
 
@@ -95,6 +95,30 @@ Additional defaults:
 
 ---
 
+## Debugging: the Resolution Model in Code
+
+Apply `execution-mindset`'s resolution model at code scale:
+
+1. **Reproduce before you reason.** A bug you can't trigger is a bug you can't
+   verify fixed. Get the failing case running first, even if it takes longer
+   than "seeing" the fix.
+2. **Read the actual error.** The message, the stack, the line — not what you
+   remember similar errors saying. Most wrong fixes start by skipping this.
+3. **Walk upstream to the first divergence.** Instrument or inspect at the
+   boundary between "state is still correct" and "state is wrong". Fix there,
+   not where the exception surfaced.
+4. **One variable per attempt.** Change one thing, re-run the reproduction,
+   observe. A shotgun diff that "works" hides which change mattered — and what
+   the others broke.
+5. **A test pinning the bug is part of the fix.** If the failure isn't captured
+   by a test after the fix, the bug is only on vacation.
+6. **Workarounds are defect reports.** If you had to bypass an API, poke
+   private state, or special-case an input to make things work, the real
+   defect is in that contract — record it as work immediately, don't just
+   move on.
+
+---
+
 ## When to Ask Before Proceeding
 
 Stop and ask when:
@@ -111,6 +135,6 @@ Do not ask just to avoid making a routine engineering decision.
 
 - Read **[references/clean-code-checklist.md](references/clean-code-checklist.md)** before finalizing a multi-file or structural change.
 - Read **[references/design-patterns.md](references/design-patterns.md)** only when you genuinely need a pattern decision, not by default.
-- Read **[references/architecture-decision-records.md](references/architecture-decision-records.md)** when comparing significant architecture options or documenting a tradeoff.
+- For architecture decision records and design-level tradeoffs, use the `architect-mindset` skill (the ADR reference moved there in v2.0).
 
 See **[README.md](README.md)** for overview and usage.
