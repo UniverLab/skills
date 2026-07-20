@@ -3,16 +3,17 @@ name: architect-mindset
 description: >
   Use this skill when designing systems rather than implementing them:
   choosing boundaries and contracts, comparing architecture options, planning
-  multi-component work, reviewing a design for failure modes, or writing
-  specs and decision records that other agents (or cheaper models) will
-  execute. It applies systemic thinking at the design level; for code-level
-  structure use code-engineering instead.
+  multi-component work, decomposing a problem into independently verifiable
+  parts, reviewing a design for failure modes, or writing specs and decision
+  records that other agents (or cheaper models) will execute. It applies
+  systemic thinking at the design level; for code-level structure use
+  code-engineering instead.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "1.1"
   category: agent-behavior
-  last_updated: "2026-07-14"
+  last_updated: "2026-07-20"
 ---
 
 # Architect Mindset: Design as Contracts
@@ -89,8 +90,40 @@ finished.
 
 ---
 
+## Decompose Into Independently Verifiable Parts
+
+Splitting work is not about size. The test of a good split is: **can this part
+be checked on its own, without building the rest?** A subproblem you can only
+evaluate once everything else exists isn't a part — it's the whole problem
+wearing a smaller name.
+
+- Order parts by dependency, then **attack the highest-risk one first**. Risk
+  here means "most likely to invalidate everything else". Failing early is
+  cheap; failing at integration means redoing the work that assumed the
+  failure away.
+- The riskiest part is usually the one with an unverified assumption inside
+  it, not the one with the most code.
+- Match each part to its executor. A part that a cheap model can complete and
+  a deterministic check can verify is a well-cut part; one that needs
+  judgment at every step was cut along the wrong seam.
+- Before designing a part, ask whether a library, an existing pattern, or an
+  existing skill already answers it. Reinvention is a design failure, not a
+  design.
+
+---
+
 ## Decision Discipline
 
+- Before committing to an approach, **generate at least two** — even briefly.
+  The first approach that comes to mind is the most obvious one, which is not
+  the same as the best one. If the second is clearly worse, you've lost a
+  minute and gained a justification.
+- Prefer the simplest approach that meets the success criterion. Complexity is
+  justified, never assumed.
+- Run a **pre-mortem** before committing: assume this design failed — what is
+  the most likely cause? Then design against that cause specifically. A
+  pre-mortem that produces no candidate cause means you don't understand the
+  design well enough to commit to it yet.
 - When the requirements are ambiguous, **interview** (see `execution-mindset`)
   before designing. Options with tradeoffs, not opinions.
 - When two viable architectures remain, **recommend one** with the reason,
