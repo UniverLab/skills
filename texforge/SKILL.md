@@ -281,15 +281,17 @@ Para las palabras que el diccionario legítimamente no conoce — nombres propio
 Diccionario personal. Las palabras que agregues se aceptan en `check` sin editar archivos a mano.
 
 ```bash
-texforge spell add nombredetesis          # al proyecto actual
-texforge spell add --global docker cqrs   # al diccionario personal, todos los proyectos
+texforge spell add docker cqrs webflux    # al diccionario personal (global, por defecto)
+texforge spell add --local nombredetesis  # solo para este proyecto
 texforge spell list                       # ver las palabras del alcance
 texforge spell remove cqrs
 ```
 
-Dos alcances. El **global** vive en `~/.texforge/spell-words` y vale en todos tus proyectos — es donde van tu apellido, tu ciudad y las tecnologías con las que trabajás. El **de proyecto** escribe en `spell-whitelist.txt` o `.texforge/spell-words` — el que ya exista, o `.texforge/spell-words` si no hay ninguno — y es para términos propios de ese documento.
+**El alcance por defecto es global** (`~/.texforge/spell-words`), porque casi todo lo que uno agrega es cierto de la persona y no de un documento: tu apellido, tu ciudad, las tecnologías con las que trabajás. `--local` es la excepción, para un término propio de ese documento; escribe en `spell-whitelist.txt` o `.texforge/spell-words` — el que ya exista, o `.texforge/spell-words` si no hay ninguno.
 
-Los dos se **suman**: una palabra aceptada en cualquiera de los dos vale.
+`--global` sigue aceptándose como forma explícita del default. `--local` fuera de un proyecto **falla** en vez de caer al global: hacer otra cosa es cómo una palabra acaba donde nunca la vas a encontrar.
+
+Los dos alcances se **suman**: una palabra aceptada en cualquiera de los dos vale.
 
 Los archivos son texto plano, una palabra por línea, con `#` para comentarios. Agregar es siempre *append*: no se reordena ni se reescribe lo que ya estaba.
 
@@ -437,5 +439,5 @@ texforge preview      # verlo
 ## Si `texforge check` reporta ruido
 
 - **Cientos de `Unknown word`**: probablemente el idioma resuelto no es el del documento. La primera línea de la salida dice cuál está usando. Declarálo con `\usepackage[spanish]{babel}` o ajustá `texforge config language`.
-- **Nombres propios y jerga**: `texforge spell add --global <palabras>`, una vez, y valen en todos tus proyectos.
+- **Nombres propios y jerga**: `texforge spell add <palabras>`, una vez, y valen en todos tus proyectos.
 - **Un warning que es correcto y molesto**: no hay silenciado por regla; las reglas de divergencia silenciosa están hechas para no disparar en el uso legítimo. Si una lo hace, es un bug del linter y vale reportarlo.
