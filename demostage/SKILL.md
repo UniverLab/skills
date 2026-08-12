@@ -28,7 +28,7 @@ panes fetch **Chromium** on first use (a system install is used if present).
 
 ```bash
 # Linux / macOS
-curl -fsSL https://get.univerlab.org/demo-stage | sh
+curl -fsSL https://get.univerlab.org/demostage | sh
 # or from source
 cargo install --path .
 ```
