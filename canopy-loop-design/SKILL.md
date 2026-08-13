@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "2.0"
+  version: "2.1"
   framework: Canopy
   category: loop-orchestration
-  last_updated: "2026-07-14"
+  last_updated: "2026-07-21"
 ---
 
 # Loop Design
@@ -82,6 +82,36 @@ Rules of thumb:
   Big specs outrun CLI session quotas mid-run — that alone justifies splitting.
 - Write specs and node prompts in **English** — models follow English
   instructions more reliably.
+
+---
+
+## Spec Groups: shared warm context 🟡
+
+By default every spec in a queue runs from a **cold** harness session — the
+implementer re-analyzes the repo from scratch. Specs that build on each other
+can instead share **one warm session**: the `group` argument on
+`queue_add_spec` tags members into a named group, and a grouped spec resumes
+the session captured by the previous **successfully-completed** sibling in that
+group instead of starting cold. That carries the earlier spec's mental model
+(files already read, decisions already made) forward into the next.
+
+**Group only a sequence over the same surface** — `T1 theme struct → T2 header
+consumes it → T3 panels consume it → …`, or one feature split into ordered
+steps. Grouping pays off exactly when step N assumes step N-1's code.
+
+**Do not group unrelated specs.** A shared session pollutes context: an
+independent bugfix inheriting an unrelated feature's session reasons over stale
+assumptions. Isolation is the correct default; grouping is the exception you
+justify. Separate bugs and unrelated areas stay ungrouped and cold.
+
+- **Order is load-bearing.** The warm session flows in queue order, so the
+  foundational spec must sit first in the group.
+- **Only success seeds the session.** If a grouped spec fails, the next sibling
+  starts cold rather than resuming a broken session — a failed run is not a
+  context worth inheriting.
+- Grouping is a property of queue membership, not of the spec: the same spec
+  can be ungrouped in one queue and grouped in another. Set it when adding, or
+  re-add with a `group` to change it (see the playbook's queue section).
 
 ---
 

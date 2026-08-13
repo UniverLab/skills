@@ -110,6 +110,7 @@ A fireable loop (cron/watch) will not re-trigger itself while it is already `Run
 | Halt after current node | `loop_pause` |
 | Retry current node | `loop_continue(action="retry_current_node")` |
 | Skip to next spec | `loop_continue(action="skip_next_spec")` |
+| Re-open a failed/completed loop | `loop_reset` (optionally `{specs:[…]}`), then `loop_run` |
 | Resume once at an exact future time | `loop_schedule_autorun(loop_id, at)` |
 | Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
 | Node reports success/failure | `loop_complete_node` |
@@ -126,8 +127,16 @@ Learned from real incidents; each row was needed at least once.
 | `draft` / `pending` | `loop_run` |
 | `paused` | `loop_continue` (`retry_current_node` or `skip_next_spec`) |
 | `running` but the daemon restarted (zombie: no child process behind it) | `loop_pause`, then `loop_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. |
-| `failed` | No direct tool yet — `loop_run` refuses it. Workaround: `loop_schedule_autorun` at now+2min; scheduled triggers call the engine directly and bypass the guard. A spec left `running` resumes at its last node, so nothing is re-implemented. |
-| `completed` | Same `loop_schedule_autorun` bypass if a re-run is genuinely needed. |
+| `failed` | `loop_reset` (clears the failed state, keeps completed specs), then `loop_run` for a single clean launch. `loop_reset` with no `specs` resets only non-completed specs, so `loop_run` resumes at the first pending one — nothing already done is re-implemented. |
+| `completed` | `loop_reset {specs:[…]}` to re-open specific specs, then `loop_run`. |
+
+**Prefer `loop_reset` + `loop_run` over `loop_schedule_autorun` for manual recovery.**
+`loop_schedule_autorun` auto-resets and resumes when it fires — convenient, but its
+resume-and-launch path can double-launch a loop that already has an in-flight run,
+which routes a superseded run down the fail edge and (with a resilience node there)
+can spin an implement→resilience→implement loop. Use autorun only for the case it is
+built for: a quota death converting a stated reset time into one future resume. For
+resuming *now*, `loop_reset` then a single `loop_run` avoids the double-launch.
 
 Two asymmetries worth knowing:
 
@@ -140,14 +149,37 @@ Two asymmetries worth knowing:
 
 ---
 
-## Pools: storage-only (until the redesign lands)
+## Queues: runtime spec lists the engine runs through a loop
 
-`loop_pool_*` tools persist pool data, but **the engine does not consume pools yet**.
-The in-flight redesign (specs R1–R7 of `canopy-bugs-memory`) replaces this model with:
-loop-level graph (the reusable "team"), a standalone spec backlog (`spec_create/list`),
-run-time pools (`loop_run {loop_id, pool_id, workdir}`), live mutation of a running
-pool, and a node blueprint inventory. Once it lands, a loop is built once (~13 calls)
-and reused across pools and workdirs.
+The redesign landed. A loop is now a reusable **graph** (the "team"), and the
+specs it runs come from a standalone backlog (`spec_create` / `spec_list`)
+collected into a **queue** the loop executes in order:
+`loop_run {loop_id, queue_id, workdir}`. Build the graph once (~13 calls), then
+point different queues at it across workdirs — the loop's own bound specs are
+typically empty when it runs a queue. (`pool` is the old name for the same
+thing; `queue_*` tools supersede `loop_pool_*`, and `queue_id` wins over the
+deprecated `pool_id` argument.)
+
+| Tool | What it does |
+|---|---|
+| `queue_create` | create an empty queue |
+| `queue_add_spec {queue_id, spec_id, group?}` | append a backlog spec; optional `group` shares a warm session (below) |
+| `queue_remove_spec` | drop a spec from the queue |
+| `queue_reorder {queue_id, spec_ids}` | total reorder — pass **every** member exactly once, in the desired order |
+| `queue_list {queue_id?}` | one queue's ordered members, or all queues in summary |
+
+**Warm-context groups.** `group` on `queue_add_spec` makes a spec resume the
+session of the previous **successfully-completed** sibling in the same group
+instead of analyzing the repo cold — see *Spec Groups* in `SKILL.md`. Group
+only an ordered sequence over the same surface; leave unrelated specs ungrouped.
+There is no "set group in place" tool: to (re)group an existing member, remove
+it and re-add it with the `group`, then `queue_reorder` to restore position.
+`queue_reorder` preserves each member's group; it only moves positions.
+
+**Membership vs. status.** `queue_*` tools change membership only; a spec's
+run status (pending / completed / failed) lives on the spec, so removing and
+re-adding a spec does not re-run an already-completed one — `loop_run` still
+resumes at the first non-completed member.
 
 ---
 
