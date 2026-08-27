@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "2.1"
+  version: "2.2"
   framework: Canopy
   category: loop-orchestration
-  last_updated: "2026-07-21"
+  last_updated: "2026-08-27"
 ---
 
 # Loop Design
@@ -78,6 +78,14 @@ Rules of thumb:
 
 - If executing the spec correctly requires information that lives only in the
   author's head or chat history, the spec is not finished.
+- **A spec decides; it never asks.** If the text contains "choose", "pick one",
+  "decide whether" or "whichever you prefer", the author left their own work
+  undone and handed it to the model with the *least* context in the chain.
+  Measured on one queue, same graph and same models: the spec that named the
+  defect at file:line with the decision already made landed in **1 implementer
+  round**; the one that asked the implementer to choose between two semantics
+  took **4**. Close the decision, write it into CONSTRAINTS as settled, and say
+  why — so nobody re-litigates it.
 - Narrow intent: "Implement auth domain service", not "Build the whole app".
   Big specs outrun CLI session quotas mid-run — that alone justifies splitting.
 - Write specs and node prompts in **English** — models follow English
@@ -112,6 +120,30 @@ justify. Separate bugs and unrelated areas stay ungrouped and cold.
 - Grouping is a property of queue membership, not of the spec: the same spec
   can be ungrouped in one queue and grouped in another. Set it when adding, or
   re-add with a `group` to change it (see the playbook's queue section).
+
+---
+
+## What A Node Can See 🔴
+
+`{{previous_feedback}}` carries the output of the **immediately previous node
+only**. `previous_output` is overwritten at every step
+(`loop_engine.rs:1487`), never accumulated — so a node has no access to
+anything that happened two hops back.
+
+This is the constraint that shapes every graph longer than three nodes:
+
+- On `review --fail--> triage --pass--> implement`, the reviewer's change list
+  reaches the implementer **only because the triage node copies it forward**.
+  That relay is not bureaucracy; remove it and the feedback is gone.
+- On `architect --> tester --> implement`, the implementer sees the tester and
+  the architect's design has vanished. Either every node relays the previous
+  one — each copy a chance to drop something, usually on a cheap model — or
+  **each node writes its artifact to the repo** and the next reads it from
+  disk. Tests are durable by nature; a design document is not unless someone
+  writes it down.
+
+Design the chain short, or give it durable ground to stand on. See
+`references/loop-patterns.md` → pattern 9.
 
 ---
 
@@ -214,8 +246,12 @@ feature request — file it, don't re-prompt.
    **[references/graph-validation.md](references/graph-validation.md)**
    immediately before creating: entry node, ambiguous edges, timeouts, gate
    tokens, PATH resolution. Every rule there broke a real run.
-5. **Persist via MCP tools** — `loop_create` → specs → nodes → edges →
-   `loop_get` to verify; order and mutation heuristics in
+5. **Persist via MCP tools** — prefer **`loop_import`**, which builds the whole
+   graph in one call and validates it all-or-nothing; fall back to
+   `loop_create` → nodes → edges only when there is no document yet, and
+   `loop_export` the result so the next one is a single call. Then
+   `loop_preflight` before spending a real run. Order, deletes, recovery and
+   the export/import contract in
    **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)**.
 6. **Summarize before running** — loop name, specs in order, graph, chosen
    CLIs/models/checks, and what still needs user confirmation. Only call

@@ -23,14 +23,28 @@ a node already burned real work. Each rule below broke a real run.
 6. **The daemon resolves each node's CLI from its own environment**, not your
    shell — under systemd that PATH is minimal. Pin absolute binaries in
    `~/.canopy/config.toml` (re-read per node, no restart needed).
-7. **Iteration budget is 10 per (spec, node), reset per spec.** A resilience
-   node that always reports pass will burn all ten attempts against the
-   implementer.
+7. **Iteration budget is 5 per (spec, node), reset per spec**
+   (`DEFAULT_MAX_ITERATIONS_PER_NODE`, verified in `loop_engine.rs:20` on
+   2026-08-27 — earlier revisions of this file said 10, which was wrong and
+   made specs look cheaper to retry than they are). A resilience node that
+   always reports pass burns all five attempts against the implementer.
+   **When the budget runs out the loop ends `failed` with `blocker: null`** and
+   the last run showing `pass` — there is no message saying the ceiling was
+   hit. Diagnose it by comparing the last run's `iteration` against 5 before
+   assuming a crash or a quota death.
 8. **`loop_run` freezes the spec list at launch; `loop_continue` re-reads it.**
    Plan mid-run additions around a pause/continue boundary.
 9. **Route the implement's success edge with `pass`, never `always`** — an
    `always` edge feeds a dead implement's output into the reviewer, which then
    approves work that does not exist.
+10. **Every node needs an exit for the statuses it can actually report.** A
+    node that ends `fail` with no `fail` edge terminates the spec with
+    `"ended 'fail' with no outgoing edge for that status"`. That is correct for
+    a deliberate dead end (a resilience node that gives up *should* stop for a
+    human) and a silent trap everywhere else. This is a property of the whole
+    graph, not of any one edge, so no single `loop_add_edge` call can catch it:
+    check it against the finished shape, or build the graph with `loop_import`,
+    where the whole document is in front of you at once.
 
 Read a failure from the runs table before touching anything: the failing node,
 its iteration count, and its raw output tell you whether the graph, the

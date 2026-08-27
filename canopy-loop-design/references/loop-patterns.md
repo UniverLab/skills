@@ -192,31 +192,21 @@ Trade-off: the reviewer's honesty is still load-bearing for the **commit** itsel
 Close that with a fourth node, `review --pass--> check_committed`, routing back to
 `implement` on failure. Verify by **comparing `HEAD`**, not by matching the commit
 message (the agent may drop the conventional-commit scope) and not by wall-clock
-(the previous spec's commit is recent too). Have the gates check record `HEAD` as
-its last step:
+(the previous spec's commit is recent too).
+
+The engine hands you the comparison point: **`{{spec_start_head}}`** expands to the
+HEAD recorded when this spec started, per spec and per run.
 
 ```bash
-<your build+test gates> && git rev-parse HEAD > .git/canopy-prev-head
+test -z "$(git status --porcelain -- src/)" \
+  && test "$(git rev-parse HEAD)" != "{{spec_start_head}}"
 ```
 
-and let `check_committed` require that it moved and the tree is clean:
-
-```bash
-test -f .git/canopy-prev-head \
-  && test -z "$(git status --porcelain -- src/)" \
-  && test "$(git rev-parse HEAD)" != "$(cat .git/canopy-prev-head)"
-```
-
-The `test -f` matters: without it a missing file makes `$(cat …)` empty, the
-comparison reads as "changed", and the check passes for a commit that never
-happened. Keep the marker inside `.git/` so it never dirties `git status`.
-
-Restart caveat: the marker file survives daemon/PC restarts pointing at a stale
-HEAD, which can turn into a false positive if the flow resumes past the gates
-node. Delete the marker in pre-flight and only resume at (or before) the gates
-node that rewrites it.
-
----
+Earlier revisions of this file taught a marker file (`.git/canopy-prev-head`)
+written by the gates node. **That is obsolete** — the marker no longer exists
+anywhere in canopy, and it carried a real hazard `{{spec_start_head}}` does not:
+the file survived daemon and PC restarts pointing at a stale HEAD, so a resumed
+flow could read "HEAD moved" for a commit that never happened.
 
 ## 8. Resilience Branch (triage a failed implement)
 
@@ -255,7 +245,7 @@ Rules:
   dead exactly when you need it.
 - Cap it: a `resilience -> implement -> resilience` cycle is bounded by the
   per-node iteration budget, but a resilience node that always reports pass will
-  burn all ten attempts.
+  burn all five attempts.
 - **Give the resilience node the clock.** Models do not know the current time, and
   "resets 6am" is ambiguous without it. A real run at 01:52 scheduled the autorun
   for 6am **of the next day** — a 23-hour stall. The prompt must require running
@@ -339,3 +329,53 @@ rescue it (`is_fireable()` excludes `Running`). Recover with `loop_pause` →
 `loop_continue(retry_current_node)`; the spec's own `running` status makes the
 engine resume at its last node, so nothing is re-implemented. See the Recovery
 Matrix in `mcp-tool-playbook.md`.
+
+---
+
+## 9. Triage Relay (route a reviewer failure, and carry its words)
+
+Pattern 8 sends a *dead* implement to resilience. This one handles the other
+failure: the reviewer ran fine and **asked for changes**. Those two look
+identical to the engine — both are `fail` — but they need opposite responses.
+
+```text
+review --fail--> triage --pass--> implement   (a real change-request: go fix it)
+                     \--fail----> resilience  (nobody reviewed: quota, empty, timeout)
+```
+
+The triage node is a **router**: a cheap model that reads one piece of text and
+picks one of two exits. It does not read code, open files, or judge whether the
+reviewer was right.
+
+Its second job is the one that is easy to miss, and it exists because of a hard
+engine constraint:
+
+### `{{previous_feedback}}` carries exactly ONE hop 🔴
+
+`previous_output` is **overwritten** at every step (`loop_engine.rs:1487`), never
+accumulated. A node sees the immediately previous node's output and nothing
+before it.
+
+So on `review --fail--> triage --pass--> implement` there are **two** hops, and
+the reviewer's change list reaches the implementer *only because the triage node
+re-emits it*. Its prompt must say so in as many words:
+
+> The next worker sees ONLY your summary. It never sees the text above.
+> Anything you leave out is lost. Do not summarise, do not shorten, do not
+> renumber — copy the list.
+
+Consequences worth designing around:
+
+- **A relay running on a cheap model is load-bearing.** It may decide to
+  summarise a twenty-line change list into "fix the tests". Budget for that when
+  choosing its model, and make the copying instruction the loudest part of the
+  prompt.
+- **Long chains lose their beginning.** In `architect → tester → implementer`,
+  the implementer sees the tester and the architect's design is gone. Either
+  every node relays the previous one (each copy a chance to drop something), or
+  each node writes its artifact **to the repo** so the next reads it from disk.
+  Tests are durable by nature; a design document is not unless someone writes it
+  down.
+- **When in doubt, route to the implementer.** A real change-request sent
+  onward costs one cycle; a real review mistaken for a quota failure stops the
+  loop for a human.

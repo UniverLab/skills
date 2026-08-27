@@ -122,6 +122,31 @@ MIT © Jheison Martinez
 
 ## Version
 
+2.2 (2026-08-27) — corrections from running two real queues, not from reading
+
+- **The iteration budget is 5, not 10** (`DEFAULT_MAX_ITERATIONS_PER_NODE`,
+  `loop_engine.rs:20`). The old number made retries look half as expensive as
+  they are. When it runs out the loop ends `failed` with `blocker: null` and a
+  last run of `pass` — no message says the ceiling was hit.
+- **`loop_export` / `loop_import`** build a whole graph in **one call**, with
+  all-or-nothing validation. Now the default path; hand-building is the
+  fallback. A 9-node graph by hand is ~28 calls.
+- **`loop_delete_node` / `loop_delete_edge` exist.** The old claim that any
+  topology change forced recreating the loop was wrong.
+- **What a node can see** (SKILL.md) — `{{previous_feedback}}` carries exactly
+  one hop. This is why the triage relay must copy the reviewer's list verbatim,
+  and why a long chain needs durable artifacts in the repo.
+- **Pattern 9, Triage Relay** (loop-patterns.md) — routing a reviewer failure
+  apart from an infrastructure failure.
+- **`{{spec_start_head}}` replaces the `.git/canopy-prev-head` marker**, which
+  no longer exists in canopy and could read as a false positive after a restart.
+- **A spec decides, it never asks** (SKILL.md) — measured: 1 implementer round
+  vs 4, same graph, same models.
+- **`loop_preflight`** added to the flow, with its concurrent-probe false
+  negative.
+- Graph-validation rule 10: every node needs an exit for the statuses it can
+  report — a whole-graph property no single `add_edge` call can catch.
+
 2.0 (2026-07-14)
 
 - **Design Expensive, Execute Cheap** (SKILL.md) — author specs and graphs with

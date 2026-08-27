@@ -6,13 +6,45 @@ Recommended tool order for creating and refining Canopy loops with the currently
 
 ## Create a New Loop
 
+### The default: one call 🔴
+
+**`loop_import {document, workdir}` builds an entire graph in a single call.**
+The document is what `loop_export` returns: name, description, nodes (with full
+prompts and commands) and edges. Edges reference nodes **by name**, not by id,
+which is what makes it portable. Validation is **all-or-nothing** — if any part
+is rejected, nothing is written.
+
+Prefer it. Building a 9-node graph by hand is ~28 calls, each re-sending the
+conversation; the same graph as a document is one. And a malformed document
+fails loudly and atomically, where hand-built graphs fail *silently*: a missing
+`fail` edge is a property of the whole shape that no individual `loop_add_edge`
+call can see (graph-validation rule 10).
+
+- `loop_export {loop_id, with_models}` produces the document. It **strips
+  `platform`/`model` by default** so a shared design does not pin the recipient
+  to a harness they may not have; pass `with_models: true` when exporting your
+  own loop to restore later. `loop_import`'s response lists every agent node
+  left without a platform.
+- Ids, workdir, specs and run state are never exported. The entry point is
+  implicit: the node with no incoming edges.
+- Import always creates a **new** loop; it never updates one. A name collision
+  gets a numeric suffix, and the response says which name was used.
+
+### Building by hand (when there is no document yet)
+
 1. `loop_create` — set `trigger` here if the loop should fire on its own (see below); omit it for a manual-only loop
-2. `loop_add_spec` for each ordered spec
-3. `loop_add_node` for each node inside the spec
-4. `loop_add_edge` for routing
-5. `loop_get` to verify the final shape
-6. summarize the graph to the user
-7. `loop_run` only after explicit approval or direct instruction — not needed at all if a cron/watch trigger will fire it
+2. `loop_add_node` for each node — insertion order sets `position`, and `position` is load-bearing (graph-validation rule 1)
+3. `loop_add_edge` for routing
+4. `loop_get` to verify the final shape against `references/graph-validation.md`
+5. `loop_export` it once it works, so the next one is a single call
+6. `loop_preflight {loop_id}` — probes every distinct platform+model the graph references, before a real run spends anything on a harness that cannot answer. **Known trap:** it probes concurrently, and two models on the *same* platform can make one report `broken` falsely. Confirm a `broken` verdict with `agent_probe {platform, model}` alone before changing the graph.
+7. summarize the graph to the user
+8. `loop_run` only after explicit approval or direct instruction — not needed at all if a cron/watch trigger will fire it
+
+Specs are **not** part of the graph any more: they live in the standalone
+backlog (`spec_create`) and reach the loop through a queue — see the Queues
+section below. `loop_add_spec` binds a spec to the loop itself and is the older
+shape; prefer `spec_create` + `queue_*`.
 
 ---
 
@@ -67,7 +99,22 @@ A fireable loop (cron/watch) will not re-trigger itself while it is already `Run
 | `loop_update` | name, description, workdir |
 | `loop_update_spec` | name, description, position, parallelizable |
 | `loop_update_node` | name, kind, config, position |
-| `loop_update_edge` | condition (pass/fail/always) |
+| `loop_update_edge` | condition (pass/fail/always) — **not** the target node |
+| `loop_delete_edge` | removes one edge by id |
+| `loop_delete_node` | removes a node **and cascades to every edge naming it** |
+| `loop_copy_node` | duplicates a node's config into this or another loop, optionally wiring it and shallow-merging `config_overrides` |
+
+**Retargeting an edge is `loop_delete_edge` + `loop_add_edge`.** Earlier
+revisions of this file said no delete tools existed and that any topology change
+forced recreating the loop — that has not been true for a while, and following
+it means recreating loops for nothing.
+
+Both delete tools are **rejected while the loop is running** (pause first), and
+`loop_delete_node` refuses the graph's entry node.
+
+Editing a node's `config` while a loop runs **is** safe: the graph is
+snapshotted per spec, so the change takes effect on the next one. Changing the
+*topology* of a running loop is not.
 
 ---
 
@@ -129,6 +176,7 @@ Learned from real incidents; each row was needed at least once.
 | `running` but the daemon restarted (zombie: no child process behind it) | `loop_pause`, then `loop_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. |
 | `failed` | `loop_reset` (clears the failed state, keeps completed specs), then `loop_run` for a single clean launch. `loop_reset` with no `specs` resets only non-completed specs, so `loop_run` resumes at the first pending one — nothing already done is re-implemented. |
 | `completed` | `loop_reset {specs:[…]}` to re-open specific specs, then `loop_run`. |
+| `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
 
 **Prefer `loop_reset` + `loop_run` over `loop_schedule_autorun` for manual recovery.**
 `loop_schedule_autorun` auto-resets and resumes when it fires — convenient, but its
