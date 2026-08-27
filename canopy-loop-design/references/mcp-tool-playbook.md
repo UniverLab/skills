@@ -37,7 +37,7 @@ call can see (graph-validation rule 10).
 3. `loop_add_edge` for routing
 4. `loop_get` to verify the final shape against `references/graph-validation.md`
 5. `loop_export` it once it works, so the next one is a single call
-6. `loop_preflight {loop_id}` — probes every distinct platform+model the graph references, before a real run spends anything on a harness that cannot answer. **Known trap, cause unverified:** a pair it reports `broken` can answer fine when probed alone — measured twice with `opencode/mimo-v2.5-free` (preflight `broken`; `agent_probe` on its own `reachable` in 9.5 s). Concurrency looked like the culprit and is *not* confirmed — running parallel sessions on that platform works. So treat a `broken` verdict as unproven until `agent_probe {platform, model}` on its own agrees, and do not rewire a graph on preflight's word alone.
+6. `loop_preflight {loop_id}` — probes every distinct platform+model the graph references, before a real run spends anything on a harness that cannot answer. Confirm a `broken` verdict with `agent_probe {platform, model}` on its own before rewiring anything: a pair preflight calls broken can answer fine when probed alone.
 7. summarize the graph to the user
 8. `loop_run` only after explicit approval or direct instruction — not needed at all if a cron/watch trigger will fire it
 
