@@ -29,6 +29,9 @@ requires = "canopy"
 [skills.canopy-loop-design]
 requires = "canopy"
 
+[skills.loop-reviewer]
+requires = "canopy"
+
 # Tool skills — bound to their CLI
 
 [skills.texforge]
