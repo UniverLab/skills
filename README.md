@@ -11,13 +11,17 @@ context rot — install less, pin per role.
 
 ## Behavior family
 
-How the agent operates. `execution-mindset` is always on; the other two stack
-on top per role.
+How the agent operates. `execution-mindset` is the base; the other two stack
+on top per role. A skill applies only when loaded — what must hold on every
+turn goes in the agent's instruction file as the same short list of targets.
 
 ### execution-mindset
-Default operating mode: zero-indulgence clarity, interview when uncertain,
-the systemic resolution model (model → locate divergence → smallest decisive
-move → close the loop), verification before reporting, and token efficiency.
+Default operating mode: the response sized to the request, indulgence named
+by its concrete forms (a spec that asks, a decision inside a spec, a bypass
+without a filed defect…), interview when two readings mean different work,
+search instead of recall for anything that changes yearly, the resolution
+model (model → first divergence → smallest decisive move → close the loop),
+verification before reporting.
 
 ### architect-mindset
 Behavior for design work: boundaries as contracts with violation signals,
@@ -55,8 +59,8 @@ Orientation map for "what can I do here?": capabilities, starter automation
 ideas, and how to discover the live tool surface without trusting a static
 list.
 
-### canopy-loop-design
-Design multi-step processes as reusable Canopy loops: the ROLE/WHAT/HOW spec
+### canopy-graph-design
+Design multi-step processes as reusable Canopy graphs: the ROLE/WHAT/HOW spec
 contract, design-expensive/execute-cheap model selection, graph patterns, and
 the MCP tool playbook.
 
@@ -89,7 +93,7 @@ cp -r skills/texforge ~/.agents/skills/
 
 ---
 
-## Pinning guide (Canopy loop nodes)
+## Pinning guide (Canopy graph nodes)
 
 With Canopy's dynamic skills, pin per node role instead of installing
 globally:
@@ -97,7 +101,7 @@ globally:
 | Node role | Pin |
 |---|---|
 | Implementer | `execution-mindset` + `code-engineering` |
-| Spec author / loop designer | `architect-mindset` + `canopy-loop-design` |
+| Spec author / graph designer | `architect-mindset` + `canopy-graph-design` |
 | Reviewer | `execution-mindset` (zero indulgence is the whole job) |
 | Any Canopy-workspace session | `canopy-intelligence`, `canopy-sync` |
 
@@ -142,11 +146,11 @@ skills:
       - "architecture"
       - "write specs"
 
-  - name: canopy-loop-design
-    path: skills/canopy-loop-design/SKILL.md
+  - name: canopy-graph-design
+    path: skills/canopy-graph-design/SKILL.md
     triggers:
-      - "create loop"
-      - "plan loop"
+      - "create graph"
+      - "plan graph"
       - "orchestrate agents"
 ```
 
