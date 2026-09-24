@@ -1,26 +1,26 @@
 ---
-name: canopy-loop-design
+name: canopy-graph-design
 description: >
   Use this skill when the user wants to turn a recurring or multi-step process
-  into a reusable Canopy loop, write specs for a backlog or pool, inspect or
-  reshape an existing loop graph, or coordinate background agent/check/gate
+  into a reusable Canopy graph, write specs for a backlog or pool, inspect or
+  reshape an existing graph, or coordinate background agent/check/gate
   flows with approvals and retries. Prefer reusable graph patterns over
-  one-off pipelines, and build against the MCP loop tools that actually exist
+  one-off pipelines, and build against the MCP graph tools that actually exist
   in the environment.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "2.2"
+  version: "3.0"
   framework: Canopy
-  category: loop-orchestration
-  last_updated: "2026-08-27"
+  category: graph-orchestration
+  last_updated: "2026-09-22"
 ---
 
-# Loop Design
+# Graph Design
 
-Design generic loops for Canopy as editable graphs, not as one-off scripts.
+Design generic graphs for Canopy as editable graphs, not as one-off scripts.
 
-This skill exists for planning and authoring **background loops** — the team
+This skill exists for planning and authoring **background graphs** — the team
 graph and the specs it consumes — that users can later inspect, edit, and run
 from Canopy.
 
@@ -32,7 +32,7 @@ Translate a user goal into:
 
 1. ordered specs, each carrying its own context (role / what / how)
 2. a reusable graph of `agent`, `check`, and `gate` nodes
-3. a persisted loop built with MCP tools
+3. a persisted graph built with MCP tools
 
 The output must stay generic enough that different users can plug in different
 CLIs, models, prompts, and verification commands.
@@ -41,8 +41,8 @@ CLIs, models, prompts, and verification commands.
 
 ## Design Expensive, Execute Cheap 🔴
 
-**Design the loop and write the specs with the most powerful model the user
-has access to.** Spec quality is the single biggest lever on loop economics:
+**Design the graph and write the specs with the most powerful model the user
+has access to.** Spec quality is the single biggest lever on graph economics:
 a precise spec lets a cheap implementer land it in one or two iterations; a
 vague spec makes even a strong implementer diverge, and divergence is paid in
 iteration budget (10 per spec/node), reviewer bounces, and quota.
@@ -127,7 +127,7 @@ justify. Separate bugs and unrelated areas stay ungrouped and cold.
 
 `{{previous_feedback}}` carries the output of the **immediately previous node
 only**. `previous_output` is overwritten at every step
-(`loop_engine.rs:1487`), never accumulated — so a node has no access to
+(`graph_engine.rs:1487`), never accumulated — so a node has no access to
 anything that happened two hops back.
 
 This is the constraint that shapes every graph longer than three nodes:
@@ -143,19 +143,19 @@ This is the constraint that shapes every graph longer than three nodes:
   writes it down.
 
 Design the chain short, or give it durable ground to stand on. See
-`references/loop-patterns.md` → pattern 9.
+`references/graph-patterns.md` → pattern 9.
 
 ---
 
 ## Core Rules
 
-### 1. Model loops as graphs, not lists
+### 1. Model processes as graphs, not lists
 
 - `agent` — produces or analyzes work
 - `check` — verifies with commands or deterministic checks
 - `gate` — decides the next route based on prior output
 
-If the loop needs iteration, use edges and gates. If it is linear, keep it
+If the graph needs iteration, use edges and gates. If it is linear, keep it
 simple.
 
 ### 2. Preserve genericity
@@ -168,13 +168,13 @@ into prompts.
 
 ### 3. Ask before irreversible behavior
 
-Before you create or run a loop, clarify: draft or run; which verification
-commands are authoritative; whether commits are allowed inside the loop;
+Before you create or run a graph, clarify: draft or run; which verification
+commands are authoritative; whether commits are allowed inside the graph;
 whether blockers should pause or hard-fail.
 
-### 4. A loop does not have to be run by hand
+### 4. A graph does not have to be run by hand
 
-`loop_create`/`loop_update` accept an optional `trigger`: **manual** (default),
+`graph_create`/`graph_update` accept an optional `trigger`: **manual** (default),
 **cron** (5-field expression, local wall-clock), or **watch** (file/dir
 changes with debounce). A one-off migration is almost always manual; a
 recurring maintenance sweep is a candidate for cron or watch. See
@@ -184,7 +184,7 @@ exact fields.
 ### 5. Reuse patterns, adapt prompts
 
 Reuse graph patterns from
-**[references/loop-patterns.md](references/loop-patterns.md)**, but adapt node
+**[references/graph-patterns.md](references/graph-patterns.md)**, but adapt node
 prompts, CLI/model selection, verification commands, retry routing, and
 blocker behavior to the project.
 
@@ -192,8 +192,8 @@ blocker behavior to the project.
 
 Loops outlive daemon restarts and PC reboots badly unless you plan for it:
 
-- A restart leaves the loop `running` with nobody executing it (a zombie).
-  Recovery is `loop_pause` → `loop_continue(retry_current_node)` — see the
+- A restart leaves the graph `running` with nobody executing it (a zombie).
+  Recovery is `graph_pause` → `graph_continue(retry_current_node)` — see the
   Recovery Matrix in `mcp-tool-playbook.md`. Scheduled autoruns can NOT
   rescue a `running` zombie.
 - Resume at (or before) an idempotent node. Deterministic checks that
@@ -203,7 +203,7 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   that triages the failed implement — quota deaths schedule their own
   autorun instead of silently losing the reset time.
 
-### 6b. Who supervises the loop — the recovery hierarchy
+### 6b. Who supervises the graph — the recovery hierarchy
 
 There are three places recovery logic can live. Order them by determinism,
 and push each responsibility as far up this list as it can go:
@@ -218,13 +218,13 @@ and push each responsibility as far up this list as it can go:
    runs; a resilience that times out is a resilience that doesn't exist.
 3. **An external watcher agent (LLM on cron): last resort, and know the cost.**
    Field evidence from running one at scale: it saved two overnight runs, and
-   it also *falsely completed* a loop by relaunching without its pool, left
+   it also *falsely completed* a graph by relaunching without its pool, left
    another stuck in `draft` by resetting and never relaunching, mangled its
    own report JSON for hours, and burned a run every 15 minutes to conclude
    "healthy". An LLM watcher acts on state it half-understands with tools
    that let it half-recover. If you deploy one anyway: give it a closed
    decision table, forbid every mutating call not in that table (especially
-   pool-less `loop_run`), and prefer wiring its enable/disable to the
+   pool-less `graph_run`), and prefer wiring its enable/disable to the
    resilience node so it only lives during recovery windows.
 
 Rule of thumb: **no LLM in the deterministic part of the critical path.**
@@ -246,16 +246,16 @@ feature request — file it, don't re-prompt.
    **[references/graph-validation.md](references/graph-validation.md)**
    immediately before creating: entry node, ambiguous edges, timeouts, gate
    tokens, PATH resolution. Every rule there broke a real run.
-5. **Persist via MCP tools** — prefer **`loop_import`**, which builds the whole
+5. **Persist via MCP tools** — prefer **`graph_import`**, which builds the whole
    graph in one call and validates it all-or-nothing; fall back to
-   `loop_create` → nodes → edges only when there is no document yet, and
-   `loop_export` the result so the next one is a single call. Then
-   `loop_preflight` before spending a real run. Order, deletes, recovery and
+   `graph_create` → nodes → edges only when there is no document yet, and
+   `graph_export` the result so the next one is a single call. Then
+   `graph_preflight` before spending a real run. Order, deletes, recovery and
    the export/import contract in
    **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)**.
-6. **Summarize before running** — loop name, specs in order, graph, chosen
+6. **Summarize before running** — graph name, specs in order, graph, chosen
    CLIs/models/checks, and what still needs user confirmation. Only call
-   `loop_run` after explicit approval or direct instruction.
+   `graph_run` after explicit approval or direct instruction.
 
 ---
 
@@ -284,12 +284,12 @@ strict token (`APPROVED`), never on a word that can appear in narration.
 
 ## Progressive Disclosure
 
-- **[references/loop-patterns.md](references/loop-patterns.md)** — reusable
+- **[references/graph-patterns.md](references/graph-patterns.md)** — reusable
   graph patterns + field notes from real failures. Read when choosing a shape.
 - **[references/graph-validation.md](references/graph-validation.md)** — the
-  pre-`loop_run` checklist. Read immediately before persisting a graph.
+  pre-`graph_run` checklist. Read immediately before persisting a graph.
 - **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** —
   tool order, triggers, mutation heuristics, recovery matrix. Read immediately
-  before creating, extending, or recovering a loop.
+  before creating, extending, or recovering a graph.
 
 See **[README.md](README.md)** for overview and usage.

@@ -1,6 +1,6 @@
 # Loop Patterns
 
-Reusable graph patterns for Canopy loops.
+Reusable graph patterns for Canopy graphs.
 
 ---
 
@@ -25,7 +25,7 @@ Best for:
 
 ## 2. Focused Bugfix Loop
 
-Use when the loop has a strong deterministic check.
+Use when the graph has a strong deterministic check.
 
 ```text
 fixer --always--> targeted_test --pass--> finish_gate
@@ -102,13 +102,13 @@ Rules:
 
 - never assume the cross-check platform matches the implementer's — that defeats the purpose
 - keep the cross-check prompt narrow (diff + spec + "find what's wrong"), not a re-implementation
-- cap escalation depth (e.g. 1 cross-check retry, then 1 third-platform escalation) so the loop can't spin forever between two disagreeing models
+- cap escalation depth (e.g. 1 cross-check retry, then 1 third-platform escalation) so the graph can't spin forever between two disagreeing models
 
 ---
 
 ## 6. Commit-on-Green Finish
 
-Use only when the user explicitly allows commits inside the loop.
+Use only when the user explicitly allows commits inside the graph.
 
 ```text
 implementer -> verifier -> reviewer -> commit_ready_gate
@@ -230,8 +230,8 @@ output and:
 1. repairs transient failures (bad command, missing dep) and reports **pass**, so
    the implement retries;
 2. on quota exhaustion (`"You've hit your session limit · resets <time>"`), parses
-   the time, calls `loop_schedule_autorun { loop_id, at }`, then reports **fail** —
-   the spec fails, but the loop wakes itself at exactly that moment;
+   the time, calls `graph_schedule_autorun { graph_id, at }`, then reports **fail** —
+   the spec fails, but the graph wakes itself at exactly that moment;
 3. **cleans the worktree if the dead implement left it dirty.** A quota death can
    land mid-edit; the next attempt would otherwise start on a dirty tree.
 
@@ -257,7 +257,7 @@ Rules:
 ## Failure modes (field notes)
 
 Real breakages seen running these patterns at scale. The engine is strict about
-graph shape and fails hard, so validate before `loop_run` (checklist in
+graph shape and fails hard, so validate before `graph_run` (checklist in
 `SKILL.md` → "Graph Validation").
 
 ### The `implement <-> review` cycle has no entry node
@@ -266,22 +266,22 @@ The most natural retry shape — `implement --always--> review` plus
 `review --fail--> implement` — is a **cycle where every node has an incoming
 edge**. The engine resolves a spec's start node as the one with no incoming edge,
 so this shape historically failed *instantly* with `"Spec has no entry node"`:
-loop `failed`, zero runs, `started_at == completed_at`. The engine now falls back
+graph `failed`, zero runs, `started_at == completed_at`. The engine now falls back
 to the **lowest-`position`** node, so set the intended start to `position: 1` and
 treat `position` as load-bearing. Don't depend on node insertion order.
 
 ### Duplicate outgoing edges → `"ambiguous outgoing edges"`
 
 If two edges leave the same node, both match a result, and they point at
-**different targets**, edge selection aborts and fails the whole loop — *after* the
+**different targets**, edge selection aborts and fails the whole graph — *after* the
 node's work is done, so it's easy to miss in review. Byte-identical duplicates
 (same target and condition) are now deduped instead of fatal, but still dedupe by
-`(from_node, condition)` before calling `loop_add_edge`. A `pass` edge and a `fail`
+`(from_node, condition)` before calling `graph_add_edge`. A `pass` edge and a `fail`
 edge from the same node are fine.
 
 ### Node `config` sent as a JSON-encoded string
 
-The MCP schema for `loop_add_node`/`loop_update_node` once declared `config` as an
+The MCP schema for `graph_add_node`/`graph_update_node` once declared `config` as an
 untyped value, so clients serialized it to a *string*. The node stored fine and
 then died mid-run with `"missing a platform/cli"`. The schema now declares
 `"type": "object"` and serde rejects non-objects at parse time — but if you build
@@ -296,18 +296,18 @@ service PATH is minimal and may be a stale hand-written snapshot. Use an absolut
 or put its dir on the daemon's PATH. Beware: reinstalling the service rewrites
 the unit file and can silently drop a hand-added PATH line.
 
-### Agent quota / session limit mid-loop
+### Agent quota / session limit mid-graph
 
-A long multi-spec loop can outrun a CLI's session/usage quota. The agent node exits
+A long multi-spec graph can outrun a CLI's session/usage quota. The agent node exits
 non-zero with *"You've hit your session limit · resets &lt;time&gt;"* in its `stdout`.
 
 - **Big spec → long run → burnt quota.** This is the real reason to keep specs
   small. It is not a graph bug.
-- **Completed specs are skipped on relaunch**, so recovery is cheap: reset the loop
-  (and the stalled spec) status and `loop_run` again; it resumes at the first
+- **Completed specs are skipped on relaunch**, so recovery is cheap: reset the graph
+  (and the stalled spec) status and `graph_run` again; it resumes at the first
   non-completed spec.
 - **Don't poll with a recurring cron.** Use pattern 8: a resilience node parses the
-  reset time and calls `loop_schedule_autorun { loop_id, at }`, which wakes the
+  reset time and calls `graph_schedule_autorun { graph_id, at }`, which wakes the
   scheduler exactly once at that instant. A blind cron retry wastes attempts
   against the per-node iteration budget.
 - Spreading implement and review across different platforms (pattern 5) means one
@@ -322,11 +322,11 @@ keep it (the implement completes it); if it **doesn't**, discard it. Back it up
 either way with `git stash create` + `git stash store`, which does not touch the
 worktree.
 
-### A daemon restart orphans the running loop
+### A daemon restart orphans the running graph
 
-The loop row stays `running` with no process behind it. Scheduled autoruns cannot
-rescue it (`is_fireable()` excludes `Running`). Recover with `loop_pause` →
-`loop_continue(retry_current_node)`; the spec's own `running` status makes the
+The graph row stays `running` with no process behind it. Scheduled autoruns cannot
+rescue it (`is_fireable()` excludes `Running`). Recover with `graph_pause` →
+`graph_continue(retry_current_node)`; the spec's own `running` status makes the
 engine resume at its last node, so nothing is re-implemented. See the Recovery
 Matrix in `mcp-tool-playbook.md`.
 
@@ -352,7 +352,7 @@ engine constraint:
 
 ### `{{previous_feedback}}` carries exactly ONE hop 🔴
 
-`previous_output` is **overwritten** at every step (`loop_engine.rs:1487`), never
+`previous_output` is **overwritten** at every step (`graph_engine.rs:1487`), never
 accumulated. A node sees the immediately previous node's output and nothing
 before it.
 
@@ -378,4 +378,4 @@ Consequences worth designing around:
   down.
 - **When in doubt, route to the implementer.** A real change-request sent
   onward costs one cycle; a real review mistaken for a quota failure stops the
-  loop for a human.
+  graph for a human.

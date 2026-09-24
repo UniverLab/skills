@@ -1,4 +1,4 @@
-# Canopy Loop Design Skill
+# Canopy Graph Design Skill
 
 **Loop orchestration skill** for turning multi-step work into reusable Canopy graphs with real MCP tooling constraints.
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-This skill helps an agent turn a user goal into a structured Canopy loop made of:
+This skill helps an agent turn a user goal into a structured Canopy graph made of:
 
 - ordered specs
 - `agent` nodes
@@ -14,7 +14,7 @@ This skill helps an agent turn a user goal into a structured Canopy loop made of
 - `gate` nodes
 - routing edges between nodes
 
-It is designed for **generic loops**, not a single hardcoded coding pipeline, and it keeps the plan grounded in the loop tools that actually exist.
+It is designed for **generic graphs**, not a single hardcoded coding pipeline, and it keeps the plan grounded in the graph tools that actually exist.
 
 ---
 
@@ -25,10 +25,10 @@ The skill guides an agent to:
 1. understand the user goal and constraints
 2. split the work into atomic specs
 3. choose an appropriate graph pattern per spec
-4. persist the loop through Canopy MCP tools
+4. persist the graph through Canopy MCP tools
 5. summarize the result before execution
 
-It also supports refining existing loops by inspecting first, then either extending the graph safely or recreating it when the current toolset cannot mutate the shape directly.
+It also supports refining existing graphs by inspecting first, then either extending the graph safely or recreating it when the current toolset cannot mutate the shape directly.
 
 ---
 
@@ -36,12 +36,12 @@ It also supports refining existing loops by inspecting first, then either extend
 
 Use it when the user asks to:
 
-- plan or create a loop
+- plan or create a graph
 - orchestrate several agents in background
 - define checkpoints and approvals
 - build developer/reviewer/verifier/committer flows
 - convert a manual process into a Canopy graph
-- update or refine a stored loop
+- update or refine a stored graph
 - add retries, approvals, or pass/fail routing around agent work
 
 ---
@@ -49,12 +49,12 @@ Use it when the user asks to:
 ## Skill Structure
 
 ```
-canopy-loop-design/
+canopy-graph-design/
 ├── SKILL.md              # Main skill definition
 ├── README.md             # This file
 ├── LICENSE               # MIT License
 └── references/
-    ├── loop-patterns.md
+    ├── graph-patterns.md
     ├── graph-validation.md
     └── mcp-tool-playbook.md
 ```
@@ -65,25 +65,25 @@ canopy-loop-design/
 
 Creation flow:
 
-- `loop_create`
-- `loop_add_spec`
-- `loop_add_node`
-- `loop_add_edge`
-- `loop_get`
+- `graph_create`
+- `graph_add_spec`
+- `graph_add_node`
+- `graph_add_edge`
+- `graph_get`
 
 Refinement flow:
 
-- `loop_list`
-- `loop_get`
-- extend with `loop_add_spec`, `loop_add_node`, or `loop_add_edge` when the change is append-only
-- recreate as a new loop when the graph shape must change in ways the toolset cannot mutate directly
+- `graph_list`
+- `graph_get`
+- extend with `graph_add_spec`, `graph_add_node`, or `graph_add_edge` when the change is append-only
+- recreate as a new graph when the shape must change in ways the toolset cannot mutate directly
 
 Execution flow:
 
-- `loop_run`
-- `loop_pause`
-- `loop_continue`
-- `loop_schedule_autorun` — resume a loop once, at an exact time (no polling)
+- `graph_run`
+- `graph_pause`
+- `graph_continue`
+- `graph_schedule_autorun` — resume a graph once, at an exact time (no polling)
 - `agent_schedule_enable` — re-enable a background agent once, at an exact time
 
 ---
@@ -94,11 +94,11 @@ Reference it from agent configuration:
 
 ```yaml
 skills:
-  - name: canopy-loop-design
-    path: skills/canopy-loop-design/SKILL.md
+  - name: canopy-graph-design
+    path: skills/canopy-graph-design/SKILL.md
     triggers:
-      - "create loop"
-      - "plan loop"
+      - "create graph"
+      - "plan graph"
       - "background pipeline"
       - "orchestrate agents"
       - "checkpoint flow"
@@ -108,8 +108,8 @@ skills:
 
 ## References
 
-- **loop-patterns.md** — examples of reusable graph shapes + field notes from real failures
-- **graph-validation.md** — the pre-`loop_run` checklist (nine fatal shapes)
+- **graph-patterns.md** — examples of reusable graph shapes + field notes from real failures
+- **graph-validation.md** — the pre-`graph_run` checklist (nine fatal shapes)
 - **mcp-tool-playbook.md** — recommended create/extend/replace flow with the current MCP toolset
 
 ---
@@ -125,24 +125,24 @@ MIT © Jheison Martinez
 2.2 (2026-08-27) — corrections from running two real queues, not from reading
 
 - **The iteration budget is 5, not 10** (`DEFAULT_MAX_ITERATIONS_PER_NODE`,
-  `loop_engine.rs:20`). The old number made retries look half as expensive as
-  they are. When it runs out the loop ends `failed` with `blocker: null` and a
+  `graph_engine.rs:20`). The old number made retries look half as expensive as
+  they are. When it runs out the graph ends `failed` with `blocker: null` and a
   last run of `pass` — no message says the ceiling was hit.
-- **`loop_export` / `loop_import`** build a whole graph in **one call**, with
+- **`graph_export` / `graph_import`** build a whole graph in **one call**, with
   all-or-nothing validation. Now the default path; hand-building is the
   fallback. A 9-node graph by hand is ~28 calls.
-- **`loop_delete_node` / `loop_delete_edge` exist.** The old claim that any
-  topology change forced recreating the loop was wrong.
+- **`graph_delete_node` / `graph_delete_edge` exist.** The old claim that any
+  topology change forced recreating the graph was wrong.
 - **What a node can see** (SKILL.md) — `{{previous_feedback}}` carries exactly
   one hop. This is why the triage relay must copy the reviewer's list verbatim,
   and why a long chain needs durable artifacts in the repo.
-- **Pattern 9, Triage Relay** (loop-patterns.md) — routing a reviewer failure
+- **Pattern 9, Triage Relay** (graph-patterns.md) — routing a reviewer failure
   apart from an infrastructure failure.
 - **`{{spec_start_head}}` replaces the `.git/canopy-prev-head` marker**, which
   no longer exists in canopy and could read as a false positive after a restart.
 - **A spec decides, it never asks** (SKILL.md) — measured: 1 implementer round
   vs 4, same graph, same models.
-- **`loop_preflight`** added to the flow, with its concurrent-probe false
+- **`graph_preflight`** added to the flow, with its concurrent-probe false
   negative.
 - Graph-validation rule 10: every node needs an exit for the statuses it can
   report — a whole-graph property no single `add_edge` call can catch.
@@ -151,7 +151,7 @@ MIT © Jheison Martinez
 
 - **Design Expensive, Execute Cheap** (SKILL.md) — author specs and graphs with
   the most powerful model available; implement with mid-tier models; review
-  with cheap narrow prompts. Spec quality is the biggest lever on loop
+  with cheap narrow prompts. Spec quality is the biggest lever on graph
   economics.
 - **The Spec Contract: ROLE / WHAT / HOW** (SKILL.md) — every spec must be
   executable by a colder, cheaper context than its author; embed values and
@@ -162,14 +162,14 @@ MIT © Jheison Martinez
 
 1.8 (2026-07-10)
 
-- **Recovery Matrix** (mcp-tool-playbook.md) — how to move a loop out of every
-  status, including `failed` (no direct tool yet; the `loop_schedule_autorun`
-  bypass) and the post-restart `running` zombie (`loop_pause` → `loop_continue`;
+- **Recovery Matrix** (mcp-tool-playbook.md) — how to move a graph out of every
+  status, including `failed` (no direct tool yet; the `graph_schedule_autorun`
+  bypass) and the post-restart `running` zombie (`graph_pause` → `graph_continue`;
   autorun cannot fire on `Running`).
 - **Core Rule 6 + Graph Validation** (SKILL.md) — design for the process dying
   mid-run; the nine fatal graph shapes, each learned from a real broken run.
 - **Pools are storage-only** (mcp-tool-playbook.md) — and the R1–R7 redesign
-  replacing them: loop-level graph (the reusable team), standalone spec backlog,
+  replacing them: graph-level graph (the reusable team), standalone spec backlog,
   run-time pools, live pool mutation, node blueprints.
 - **English prompts** — spec descriptions and node templates now default to
   English.
@@ -178,9 +178,9 @@ MIT © Jheison Martinez
 
 - **Graph Validation** (SKILL.md) — the fatal shapes: entry node, ambiguous edges,
   `config` typing, `check` timeout default, gate matching on serialized JSON.
-- **Patterns 7 & 8** (loop-patterns.md) — *Gated Implement* and the
+- **Patterns 7 & 8** (graph-patterns.md) — *Gated Implement* and the
   *Resilience Branch* that triages a failed implement and schedules its own resume.
-- **Resume semantics** (mcp-tool-playbook.md) — why `loop_run` refuses failed loops
+- **Resume semantics** (mcp-tool-playbook.md) — why `graph_run` refuses failed graphs
   but a scheduled trigger does not.
 
 1.2 (2026-05-13)
