@@ -3,7 +3,7 @@ name: canopy-capabilities
 description: >
   Use this skill when someone asks what Canopy can do: onboarding a new user,
   answering "what can I do here?", proposing automations for a workspace, or
-  deciding whether a need maps to an agent, a loop, memory, or sync. It gives
+  deciding whether a need maps to an agent, a graph, memory, or sync. It gives
   the capability map plus concrete starter ideas, and teaches how to discover
   the live tool surface instead of trusting a static list.
 license: MIT
@@ -21,7 +21,7 @@ metadata:
 Canopy is a runtime layer that sits alongside AI coding agents (Claude, Codex,
 OpenCode, Gemini, Copilot, and any CLI in its platform registry) and gives
 them what harnesses don't: persistent memory, background scheduling,
-multi-agent coordination, and autonomous work loops.
+multi-agent coordination, and autonomous work graphs.
 
 This skill is a MAP, not an inventory. Tool names and flags evolve — always
 verify the live surface (below) before promising an exact call.
@@ -33,7 +33,7 @@ verify the live surface (below) before promising an exact call.
 - `get_tools(scope="session_start")` — the workspace brief + which MCP tools apply right now.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
 - `agent_models` — which CLI platforms and models this machine can actually run.
-- `blueprint_list` — ready-made node blueprints for building loops.
+- `blueprint_list` — ready-made node blueprints for building graphs.
 
 If this skill and the live surface disagree, the live surface wins.
 
@@ -56,7 +56,7 @@ A reusable graph of agent / check / gate nodes consumes a queue of specs:
 implement → verify with real commands → review on a different model → commit.
 Runs unattended, survives restarts, schedules its own resumption after CLI
 quota resets. This is the heavy hitter: backlogs of bugfixes, refactors,
-docs, or migrations executed overnight. (Design guidance: `canopy-loop-design`.)
+docs, or migrations executed overnight. (Design guidance: `canopy-graph-design`.)
 
 ### 4. Multi-agent sync
 Agents declare missions, report status, and broadcast milestones so parallel
@@ -66,7 +66,7 @@ history. (Details: `canopy-sync`.)
 ### 5. Interactive session management (TUI)
 Live terminals for interactive agents, status semaphores, a prompt builder
 (with scheduled sends), project views with backlog/knowledge/history, and
-live loop graphs — one dashboard over everything above.
+live graphs — one dashboard over everything above.
 
 ### 6. RAG over local documents
 Index a directory of PDFs/documents and query it from any agent — useful for
@@ -74,8 +74,8 @@ literature-driven work (specs that cite real sources) and project docs.
 
 ### 7. Spec backlogs and pools
 Work items (specs) live in a standalone backlog, tagged per project, ordered
-in pools, and fed to any compatible loop. Writing good specs is a skill:
-role / what / how (see `canopy-loop-design`).
+in pools, and fed to any compatible graph. Writing good specs is a skill:
+role / what / how (see `canopy-graph-design`).
 
 ---
 
@@ -85,7 +85,7 @@ role / what / how (see `canopy-loop-design`).
 |---|---|
 | "I keep re-explaining my codebase" | Intelligence layer (facts/patterns) |
 | "Run X every night / when Y changes" | Background agent (cron / watch) |
-| "Work through this backlog without me" | Specs + pool + loop |
+| "Work through this backlog without me" | Specs + queue + graph |
 | "Two agents keep stepping on each other" | Sync protocol |
 | "Ask questions over these papers/docs" | RAG |
 | "Send my agent a prompt at 6am" | Prompt builder scheduled send |
