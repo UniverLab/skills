@@ -1,26 +1,26 @@
 ---
-name: loop-reviewer
+name: graph-reviewer
 description: >
-  Use this skill to review a Canopy loop before it spends real quota: its
+  Use this skill to review a Canopy graph before it spends real quota: its
   graph, the specs it will execute, and how it allocates expensive models.
-  Apply it when a loop is about to run for the first time, after reshaping a
-  graph, when a queue has been assembled or extended, or when a loop is
+  Apply it when a graph is about to run for the first time, after reshaping a
+  graph, when a queue has been assembled or extended, or when a graph is
   burning budget without finishing work. It audits; it does not implement.
 license: MIT
 metadata:
   author: jheison.martinez
   version: "1.0"
   framework: Canopy
-  category: loop-orchestration
-  last_updated: "2026-09-01"
+  category: graph-orchestration
+  last_updated: "2026-09-22"
 ---
 
-# Loop Reviewer: Audit Before It Costs
+# Graph Reviewer: Audit Before It Costs
 
-A loop that is wrong does not fail cheaply. It fails after twenty minutes of
+A graph that is wrong does not fail cheaply. It fails after twenty minutes of
 agent time, on the third spec, having already spent the budget you were
-protecting. Every finding in this skill comes from a loop that shipped work
-and a loop that burned quota, so review against it before running, not after.
+protecting. Every finding in this skill comes from a graph that shipped work
+and a graph that burned quota, so review against it before running, not after.
 
 You **audit**. You do not fix the graph, edit specs, or write code. Your
 deliverable is a report.
@@ -29,8 +29,8 @@ deliverable is a report.
 
 ## What You Are Given
 
-A loop id, and usually a queue id. Read them through the MCP surface:
-`loop_get` for the graph, `queue_list` and `spec_list` for the work. Large
+A graph id, and usually a queue id. Read them through the MCP surface:
+`graph_get` for the graph, `queue_list` and `spec_list` for the work. Large
 results are saved to a file whose path the tool returns — read that file in
 chunks until you have all of it.
 
@@ -62,7 +62,7 @@ Structural defects are cheap to find and expensive to hit.
 
 ## 2 · The Specs
 
-Apply these to every spec the loop will execute. Quote the offending text.
+Apply these to every spec the graph will execute. Quote the offending text.
 
 - **A spec decides; it does not ask.** Any spec leaving a choice to the
   implementer is defective. Look for *decide*, *choose*, *pick one*,
@@ -74,11 +74,11 @@ Apply these to every spec the loop will execute. Quote the offending text.
     implementing*. That is legitimate when the spec bounds it — a default, a
     criterion, or a tie-break. Flag those separately as bounded open points,
     and say whether the bound is actually there.
-- **One repository per spec.** A loop run has a single workdir and a single
+- **One repository per spec.** A graph run has a single workdir and a single
   committer. A spec whose work lives partly in another repository cannot be
   completed: the reviewer sees the deliverable outside the tree it can commit
   and refuses, correctly, every time. Flag any spec referencing paths or work
-  outside the loop's workdir.
+  outside the graph's workdir.
 - **Seven sections present**: Objective, Functional Requirements,
   Non-Functional Requirements, Constraints, Guidelines, In Scope, Out of Scope.
 - **What and how, not history.** A spec carries the decision, not the story of
@@ -95,7 +95,7 @@ Apply these to every spec the loop will execute. Quote the offending text.
 
 ## 3 · Model Economy
 
-This is where loops actually fail, and the part most reviews skip.
+This is where graphs actually fail, and the part most reviews skip.
 
 - **Where does the expensive model sit?** It should receive work that has
   already passed a deterministic gate and a cheaper reviewer. An expensive
@@ -136,9 +136,9 @@ This is where loops actually fail, and the part most reviews skip.
   assumes is actually available where it is read.
 - **Are the destructive prohibitions present** where they matter — no
   committing from a non-committer, no pushing, no history rewriting?
-- **Does any node risk killing its own run?** A loop working on a tool whose
+- **Does any node risk killing its own run?** A graph working on a tool whose
   binary reconciles running state can have an agent terminate itself by
-  building or launching that binary. If the loop targets such a repository,
+  building or launching that binary. If the graph targets such a repository,
   the prompts must forbid it.
 
 ---
@@ -163,7 +163,7 @@ Order by severity, and quote evidence.
 - **BLOCKING** — will fail or waste budget as written: graph defects,
   undecided specs, cross-repository specs.
 - **EXPENSIVE** — will run, but costs more than it should: model placement,
-  double-invocation review loops, missing `resume`, absent groups.
+  double-invocation review graphs, missing `resume`, absent groups.
 - **NEEDS REWRITE** — structural spec problems: missing sections, history
   instead of requirements, unsourced claims.
 - **BOUNDED OPEN POINTS** — deliberate, with their bound named. Say whether

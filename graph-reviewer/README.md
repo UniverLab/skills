@@ -1,19 +1,19 @@
-# loop-reviewer
+# graph-reviewer
 
-**Audit skill** for reviewing a Canopy loop before it spends real quota — the
+**Audit skill** for reviewing a Canopy graph before it spends real quota — the
 graph, the specs it will execute, and how it allocates expensive models.
 
-Part of the loop-orchestration family:
+Part of the graph-orchestration family:
 
-- [canopy-loop-design](../canopy-loop-design/) — how to build a loop
-- **loop-reviewer** — how to audit one before running it
+- [canopy-graph-design](../canopy-graph-design/) — how to build a graph
+- **graph-reviewer** — how to audit one before running it
 
 ## Why it exists
 
-A wrong loop does not fail cheaply. It fails after twenty minutes of agent
+A wrong graph does not fail cheaply. It fails after twenty minutes of agent
 time, on the third spec, having already spent the budget it was meant to
-protect. Every check in this skill comes from a loop that shipped work or a
-loop that burned quota.
+protect. Every check in this skill comes from a graph that shipped work or a
+graph that burned quota.
 
 ## What it covers
 
