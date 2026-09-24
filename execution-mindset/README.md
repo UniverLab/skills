@@ -1,27 +1,29 @@
 # Execution Mindset Skill
 
-**Always-active operating mode** for zero-indulgence, interview-driven agent behavior.
+Default operating mode for any task: size the response, catch indulgence by
+its declared forms, interview when readings diverge, resolve by locating the
+first divergence, search instead of guessing on things that change, verify
+before reporting.
 
 ---
 
 ## Overview
 
-The Execution Mindset skill turns the agent into a disciplined collaborator rather than a blind executor. It is the default operating mode for starting work, aligning on ambiguous requests, verifying outcomes, and responding efficiently.
+The skill is a list of targets and one resolution loop, not a persona. A
+skill only applies when it is loaded; what has to be present on every turn
+belongs in the agent's instruction file (`CLAUDE.md` or equivalent) as the
+same short list of targets.
 
 ---
 
-## Key Principles
+## What it contains
 
-### 🔴 CRITICAL Principles
-
-1. **Zero Indulgence + Interview** — No soft landings. When uncertain, interview to align mental models. When clear, execute immediately.
-2. **The Resolution Model** — Model the system, locate the expected-vs-observed divergence, make the smallest decisive move, treat anomalies as signal, fix at the broken contract, close the loop.
-3. **Verify Before Reporting** — Never say "done" without verifying from the user's perspective
-
-### 🟡 IMPORTANT Principles
-
-4. **Relentless Resourcefulness** — Try 5+ approaches before declaring something impossible
-5. **Token Efficiency** — Be lean in commands and responses without losing substance
+1. **Size the response** — trivial / standard / complex, and what each gets.
+2. **What indulgence looks like** — nine concrete defects, each observable: a spec that asks, a decision inside a spec, a bypass without a filed defect, a parked defect, a deducible question, a silent decision, praise before the flaw, dated advice from memory, "done" unverified.
+3. **Interview** — when two readings mean different work: name the gap, cost the readings, recommend one with the reason, restate, execute.
+4. **Search** — knowledge has a date; what moves yearly is looked up, not recalled.
+5. **The resolution model** — model → first divergence → evidence → smallest decisive move → anomalies → broken contract → second-order effects → close the loop.
+6. **Verify before reporting** and **tokens**.
 
 This skill is pure behavior: Canopy-specific tooling (intelligence layer, sync
 protocol) was extracted in v5.0 to [canopy-intelligence](../canopy-intelligence/)
