@@ -74,8 +74,8 @@ literature-driven work (specs that cite real sources) and project docs.
 
 ### 7. Spec backlogs and pools
 Work items (specs) live in a standalone backlog, tagged per project, ordered
-in pools, and fed to any compatible graph. Writing good specs is a skill:
-role / what / how (see `canopy-graph-design`).
+in queues, and fed to any compatible graph. Writing good specs is a skill:
+the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 
 ---
 

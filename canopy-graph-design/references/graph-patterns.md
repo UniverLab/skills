@@ -1,4 +1,4 @@
-# Loop Patterns
+# Graph Patterns
 
 Reusable graph patterns for Canopy graphs.
 
@@ -379,3 +379,60 @@ Consequences worth designing around:
 - **When in doubt, route to the implementer.** A real change-request sent
   onward costs one cycle; a real review mistaken for a quota failure stops the
   graph for a human.
+
+---
+
+## 10. Crew Graph with a Chained Quality Pass
+
+The production shape for a repo that receives a queue of specs on a feature
+branch. Every agent step is an ensemble (see `SKILL.md` → Ensembles), every
+verification is a deterministic check, and code quality is a second graph that
+runs after the queue instead of inside every spec.
+
+```text
+Start -> Lock repo (gitkit lock) -> Designer[round_robin]
+      -> plan-present check ($GITDIR/loop-design.md exists; fail -> Designer)
+      -> Implementer[round_robin] -> Full gates (fail -> Implementer)
+      -> Reviewer 1 presence[round_robin] (fail -> Implementer)
+      -> Unlock -> Committer[cascade, commit_rights] -> Check committed
+      -> Relock -> Reviewer 2 exercise+fix[round_robin]
+      -> Full gates again (fail -> Reviewer 2) -> Commit R2 fixes (check)
+
+every check --error--> Resilience (pattern 8) --pass--> plan-present check
+lock/commit checks --fail--> "Veredicto humano" (exit 1 with the verdict text)
+```
+
+- **The designer writes its plan to disk** (`$GITDIR/loop-design.md`, outside
+  the tree) and a check refuses to continue without it. Pattern 9's one-hop
+  limit is why: the implementer, both reviewers and the bounced implementer
+  all read the plan from disk, never from a relay.
+- **The repo is locked while agents edit** and unlocked only around the
+  committer, so a human (or another graph) cannot commit into the middle of a
+  spec; the R2-fixes check commits with the spec's scope read from HEAD.
+- **Hooks**: `on_spec_completed`/`on_completed` append to a log;
+  `on_failed`/`on_blocked` wake the orchestrating session by name with the
+  node and blocker; `on_completed` also launches the quality graph with a
+  graph hook (`target_graph_id` + `idea`).
+
+The **quality graph** is spec-less: it runs with an `idea` ("make the strict
+gate green, then kill every mutant in the diff against develop") instead of a
+queue.
+
+```text
+Lock -> Quality gate (fail -> Fixer[round_robin]) -> Reviewer[round_robin]
+     -> Commit -> Mutants (CI, sharded) (fail -> Fixer) -> Unlock
+```
+
+- **Mutation testing runs in CI, never on the machine running the daemon.** A
+  local run exhausted memory and the kernel killed the daemon with every graph
+  on it. The check node dispatches the workflow, waits for the run to be
+  *completed* (not for a watch command to return), reruns shards the runner
+  lost once, and reports a shard that never reported as INCOMPLETE with its
+  log — never as a pass.
+- **The Fixer never applies a mutation by hand** to see what happens; it reads
+  the survivor list and adds the test that kills it.
+- **Equivalent mutants are excluded, not argued.** An exclusion names the
+  function and the operator (never a line number, which moves), carries a
+  one-line proof as its comment, and the Reviewer checks the proof. A proof
+  that only holds because the code is dead means the fix is deleting the dead
+  code, not excluding the mutant.

@@ -60,9 +60,9 @@ ideas, and how to discover the live tool surface without trusting a static
 list.
 
 ### canopy-graph-design
-Design multi-step processes as reusable Canopy graphs: the ROLE/WHAT/HOW spec
-contract, design-expensive/execute-cheap model selection, graph patterns, and
-the MCP tool playbook.
+Design multi-step processes as reusable Canopy graphs: the tagged `<spec>`
+contract, design-expensive/execute-cheap model selection, ensembles and hooks,
+graph patterns, and the MCP tool playbook.
 
 ---
 

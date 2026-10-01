@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.0"
+  version: "3.1"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-09-22"
+  last_updated: "2026-10-01"
 ---
 
 # Graph Design
@@ -30,9 +30,12 @@ from Canopy.
 
 Translate a user goal into:
 
-1. ordered specs, each carrying its own context (role / what / how)
-2. a reusable graph of `agent`, `check`, and `gate` nodes
-3. a persisted graph built with MCP tools
+1. ordered specs in the tagged `<spec>` format, each carrying its own context
+2. a reusable graph of `agent`, `check`, and `gate` nodes, with ensembles where
+   one model is not enough
+3. hooks that say what happens after: a log line, a follow-up graph, a message
+   to the orchestrating session
+4. a persisted graph built with MCP tools
 
 The output must stay generic enough that different users can plug in different
 CLIs, models, prompts, and verification commands.
@@ -45,7 +48,8 @@ CLIs, models, prompts, and verification commands.
 has access to.** Spec quality is the single biggest lever on graph economics:
 a precise spec lets a cheap implementer land it in one or two iterations; a
 vague spec makes even a strong implementer diverge, and divergence is paid in
-iteration budget (10 per spec/node), reviewer bounces, and quota.
+iteration budget (5 entries per node or ensemble per spec), reviewer bounces,
+and quota.
 
 The asymmetry is deliberate:
 
@@ -58,36 +62,45 @@ recommend switching for the authoring step.
 
 ---
 
-## The Spec Contract: ROLE / WHAT / HOW 🔴
+## The Spec Contract: the tagged `<spec>` 🔴
 
 Every spec must be executable by a colder, cheaper context than its author.
 A spec that assumes the reader knows the conversation is a spec that will
-diverge. Structure each one as:
+diverge. `spec_create` takes one `<spec>` document with seven tagged sections;
+three are required:
 
-- **ROLE** — who the implementer is for this task: "You are a Rust engineer
-  working on harness-canopy's TUI layer." Sets domain, codebase, and register.
-- **WHAT** — the outcome plus acceptance criteria: observable behavior,
-  files/artifacts that must exist, tests that must pass. This is what the
-  reviewer will check against.
-- **HOW** — the route: which files/modules to touch, the approach to take,
-  known constraints and traps ("the daemon resolves CLIs from its own PATH",
-  "never modify data/coadd-*"). Embed measured values and exact commands
-  instead of pointing at where to find them.
+| Section | Carries |
+|---|---|
+| `<objective>` (required) | The outcome, and for a defect the measured evidence: the command, the input, the wrong output, the date, the commit. Observable, not aspirational. |
+| `<functional_requirements>` (required) | Numbered, each one decided: exact files, functions, messages (quoted verbatim), exit codes, the tests to add by name and input, and the **evidence the report must paste** (the command run on a release build in a scratch dir and its output). This is what the reviewers check against. |
+| `<non_functional_requirements>` | Size, speed, compatibility budgets. |
+| `<constraints>` | What must not change; settled decisions. |
+| `<in_scope>` | Files and modules the work may touch. |
+| `<out_of_scope>` | Adjacent work that is explicitly someone else's. |
+| `<guidelines>` (required) | Traps and house rules: where to run, what never to run, what never to write. |
 
 Rules of thumb:
 
 - If executing the spec correctly requires information that lives only in the
-  author's head or chat history, the spec is not finished.
-- **A spec decides; it never asks.** If the text contains "choose", "pick one",
-  "decide whether" or "whichever you prefer", the author left their own work
-  undone and handed it to the model with the *least* context in the chain.
+  author's head or chat history, the spec is not finished. Embed measured
+  values and exact commands instead of pointing at where to find them.
+- **A spec decides; it never asks.** If the text contains "choose", "consider",
+  "if needed", "pick one" or "whichever you prefer", the author left their own
+  work undone and handed it to the model with the *least* context in the chain.
   Measured on one queue, same graph and same models: the spec that named the
   defect at file:line with the decision already made landed in **1 implementer
   round**; the one that asked the implementer to choose between two semantics
-  took **4**. Close the decision, write it into CONSTRAINTS as settled, and say
-  why — so nobody re-litigates it.
-- Narrow intent: "Implement auth domain service", not "Build the whole app".
-  Big specs outrun CLI session quotas mid-run — that alone justifies splitting.
+  took **4**. Write the decision into the spec as settled. The *reasoning*
+  behind it goes to the knowledge layer (`intelligence_upsert`), not into the
+  spec — a spec carries the what and the how.
+- **Demand evidence, not claims.** End the requirements with what the report
+  must paste: the exact command on a release build in a scratch directory and
+  its output. A reviewer can check a pasted output; it cannot check "verified".
+- **Name what must never be touched.** Agents run with the user's HOME: say
+  which caches, configs and binaries are off limits (`~/.local/bin`, the
+  tool's own config dir, anything a `new`/`refresh` command would overwrite).
+- Narrow intent: one defect or one feature per spec. Big specs outrun CLI
+  session quotas mid-run — that alone justifies splitting.
 - Write specs and node prompts in **English** — models follow English
   instructions more reliably.
 
@@ -126,8 +139,8 @@ justify. Separate bugs and unrelated areas stay ungrouped and cold.
 ## What A Node Can See 🔴
 
 `{{previous_feedback}}` carries the output of the **immediately previous node
-only**. `previous_output` is overwritten at every step
-(`graph_engine.rs:1487`), never accumulated — so a node has no access to
+only**. The engine overwrites the previous output at every step and never
+accumulates it — so a node has no access to
 anything that happened two hops back.
 
 This is the constraint that shapes every graph longer than three nodes:
@@ -144,6 +157,64 @@ This is the constraint that shapes every graph longer than three nodes:
 
 Design the chain short, or give it durable ground to stand on. See
 `references/graph-patterns.md` → pattern 9.
+
+---
+
+## Ensembles: a crew instead of one model 🔴
+
+A single agent node dies with its platform: one quota reset, one gateway
+outage, and the spec fails. An **ensemble** puts several members (each its own
+platform + model, optionally its own `prompt_override`) behind one logical
+step, created with `graph_add_ensemble` and reshaped with
+`graph_update_ensemble` without touching member nodes. Three kinds:
+
+| Kind | Behaviour | Use it for |
+|---|---|---|
+| `parallel` (default) | Every member runs; the step passes when `min_pass` of them pass. | Review panels where independent votes matter; give members different `prompt_override` angles (correctness, security, conventions). |
+| `round_robin` | One member per entry, rotating on every re-entry. | Designer, implementer, reviewers: a bounce lands on a *different* model with fresh eyes, and quota spreads across platforms. |
+| `cascade` | Members in order; the first pass wins. | The committer: a cheap reliable model first, fallbacks behind it. |
+
+Rules:
+
+- **Mix platforms in every ensemble.** Members on one platform share one quota
+  and die together. Before a run, `graph_preflight` probes every distinct
+  platform+model pair; replace a pair it reports broken before launching, not
+  after the first failure.
+- **Exactly one commit holder.** `commit_rights` marks the ensemble (or node)
+  allowed to write git history; every other prompt says "never commit".
+- **Chain without relay nodes.** `on_pass_to`/`on_fail_to` accept another
+  ensemble's id, and `add_entry_from` lets several nodes enter one ensemble
+  (a failing gate and a bouncing reviewer both entering the implementer).
+- **Order members by cost of a wasted turn.** In a `round_robin` the first
+  member takes the first attempt: put the strongest model where a wrong first
+  attempt is expensive (the designer), the cheapest where attempts are mostly
+  mechanical (the committer).
+- The attempt ceiling applies per ensemble: 5 entries per spec per run.
+
+---
+
+## Hooks: what happens after 🟡
+
+A graph's work is not finished when its last node passes: someone has to know,
+and often something else has to start. `graph_update` takes an event-keyed
+`hooks` map (`on_spec_completed`, `on_completed`, `on_failed`, `on_blocked`),
+each an ordered list. Each hook is exactly one mode:
+
+- **command** — a shell line with the `CANOPY_HOOK_*` variables exported
+  (`GRAPH_NAME`, `SPEC_NAME`, `NODE`, `BLOCKER`, …). Use it for an append-only
+  log. **Never start a canopy binary from a hook**: daemon-startup recovery
+  kills live runs, including the one that fired the hook.
+- **interactive** — a prompt delivered into a live session by
+  `target_session_name` (resolved by name on every fire, so it survives
+  restarts). Use it to wake the orchestrating session on `on_failed` /
+  `on_blocked` with `{{node}}` and `{{blocker}}`, and on `on_completed` with
+  what to review.
+- **graph** — `target_graph_id` launches another graph in-process, with a
+  `queue_id` or an `idea`. Use it to chain phases (pattern 10: a spec graph
+  hands its branch to a spec-less quality graph).
+- **agent** — a one-shot agent run with platform/model/prompt.
+
+Hooks are not retroactive: one registered after its event fired does not fire.
 
 ---
 
@@ -231,6 +302,24 @@ Rule of thumb: **no LLM in the deterministic part of the critical path.**
 When you catch a watcher doing state-machine work, that work is an engine
 feature request — file it, don't re-prompt.
 
+### 7. Checks are hermetic, versioned and cheap
+
+A check node runs with the user's HOME and environment. Make it safe to run a
+hundred times:
+
+- **Put the gate in the repo** (`scripts/check-*.sh`) and call it from the
+  node, so agents run the exact same gate before reporting pass and the gate
+  is reviewed like code. Scope it to the spec's change with
+  `--changed "{{spec_start_head}}"`.
+- **Never touch state outside the repo**: no tool command that refreshes a
+  cache from the network, rewrites a user config, or installs a binary. If the
+  tool under test has such a command, the gate renders or copies around it.
+- **Offload what can kill the machine.** A local mutation-testing run once
+  exhausted memory and took the daemon down with every graph on it; it runs in
+  CI now, and the graph only waits for the result.
+- **Never run the orchestrator itself** (a `canopy` binary) from a check or
+  hook.
+
 ---
 
 ## Construction Playbook
@@ -238,9 +327,12 @@ feature request — file it, don't re-prompt.
 1. **Understand the target outcome** — deliverable, hard constraints, allowed
    tools/CLIs, required validations, parallelism.
 2. **Split into specs** — ordered, independently understandable, small enough
-   to validate, each with ROLE / WHAT / HOW.
+   to validate, each a tagged `<spec>`. Bugs before quality work before
+   features.
 3. **Pick a graph shape** — linear, review loop, verify loop, gated implement
-   (pattern 7), resilience branch (pattern 8), or a fusion/join shape.
+   (pattern 7), resilience branch (pattern 8), crew graph with a chained
+   quality pass (pattern 10), or a fusion/join shape. Decide which nodes are
+   ensembles and wire the hooks.
    **Route the implement's success edge with `pass`, never `always`.**
 4. **Validate the graph** — read
    **[references/graph-validation.md](references/graph-validation.md)**
@@ -280,12 +372,28 @@ argv. Set `timeout_seconds` explicitly.
 Use gates when routing depends on semantics, not just exit codes. Gate on a
 strict token (`APPROVED`), never on a word that can appear in narration.
 
+### Two reviewers, two questions
+
+Split review so each reviewer has one checkable question:
+
+- **Reviewer 1 — presence.** Every numbered requirement located at
+  `file:line`, every requested test found by name, nothing out of scope. It
+  does not run anything and does not judge taste.
+- **Reviewer 2 — behaviour.** It exercises the change the way a user would
+  (a release build run in a scratch dir, the output inspected) and fixes what
+  it finds in the working tree; a deterministic check re-runs the gates and a
+  check node commits its fixes.
+
+A presence reviewer that also judges behaviour does neither well; a behaviour
+reviewer that never ran the binary has not reviewed.
+
 ---
 
 ## Progressive Disclosure
 
 - **[references/graph-patterns.md](references/graph-patterns.md)** — reusable
-  graph patterns + field notes from real failures. Read when choosing a shape.
+  graph patterns (including pattern 10, the crew graph with a chained quality
+  pass) + field notes from real failures. Read when choosing a shape.
 - **[references/graph-validation.md](references/graph-validation.md)** — the
   pre-`graph_run` checklist. Read immediately before persisting a graph.
 - **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)** —

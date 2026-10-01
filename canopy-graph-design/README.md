@@ -122,6 +122,20 @@ MIT © Jheison Martinez
 
 ## Version
 
+3.1 (2026-10-01) — catch-up with the graphs actually running.
+
+- **Spec contract is the tagged `<spec>`** (seven sections, three required)
+  instead of ROLE / WHAT / HOW; a spec decides, its reasoning goes to the
+  knowledge layer; requirements end with the evidence the report must paste.
+- **Ensembles** (parallel / round_robin / cascade), commit rights, mixed
+  platforms and preflight before launch.
+- **Hooks** (command, interactive by session name, graph chaining, agent).
+- **Core rule 7: checks are hermetic, versioned in the repo and cheap**;
+  mutation testing runs in CI.
+- **Two reviewers, two questions** (presence vs behaviour).
+- **Pattern 10: crew graph with a chained quality pass** (graph-patterns.md).
+- Fixed: iteration budget is 5 per node/ensemble per spec (SKILL.md said 10).
+
 2.2 (2026-08-27) — corrections from running two real queues, not from reading
 
 - **The iteration budget is 5, not 10** (`DEFAULT_MAX_ITERATIONS_PER_NODE`,
