@@ -11,8 +11,9 @@ context rot — install less, pin per role.
 
 ## Behavior family
 
-How the agent operates. `execution-mindset` is the base; the other two stack
-on top per role. A skill applies only when loaded — what must hold on every
+How the agent operates. `execution-mindset` is the base; `architect-mindset`
+and `code-engineering` stack on top per role, and `tutor` overrides its
+recommend-first rules for the length of a tutoring session. A skill applies only when loaded — what must hold on every
 turn goes in the agent's instruction file as the same short list of targets.
 
 ### execution-mindset
@@ -32,6 +33,11 @@ and specs written for the cheapest executor.
 Behavior for code work: structural judgment, pattern selection with restraint,
 maintainable multi-file changes, and debugging as the resolution model applied
 to code.
+
+### tutor
+Maieutic tutoring for topics with conceptual depth: interview by thematic
+axes, a Pareto roadmap the user restates, questions by default and neutral
+forks, minimal explanation only when the user is stuck.
 
 ```bash
 git clone https://github.com/UniverLab/skills.git
