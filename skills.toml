@@ -26,10 +26,10 @@ requires = "canopy"
 [skills.canopy-sync]
 requires = "canopy"
 
-[skills.canopy-loop-design]
+[skills.canopy-graph-design]
 requires = "canopy"
 
-[skills.loop-reviewer]
+[skills.graph-reviewer]
 requires = "canopy"
 
 # Tool skills — bound to their CLI
