@@ -12,13 +12,14 @@ Part of the behavior family:
 Core ideas: model the forces before proposing structure; boundaries are
 promises with violation signals; design for the process dying mid-step;
 classify decisions by cost of reversal; enumerate consumers before changing
-anything shared; write specs (role / what / how) for the cheapest executor.
+anything shared; write specs that decide, for the cheapest executor; keep
+decisions in the knowledge layer, not the repo.
 
 ## Contents
 
 - [SKILL.md](SKILL.md) — the design loop, decision discipline, design smells
 - [references/architecture-decision-records.md](references/architecture-decision-records.md)
-  — ADR format and worked examples (moved here from code-engineering)
+  — decision-record shape, worked examples, and where decisions live
 
 ## License
 

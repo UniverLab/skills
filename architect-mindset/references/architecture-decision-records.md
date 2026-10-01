@@ -160,53 +160,28 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 ### 4. Maintain
 - Update ADR if new information emerges
 - Mark as "Deprecated" if no longer relevant
-- Reference in code and documentation
+- Point at it from the specs and status files it governs
 
 ---
 
-## ADR Organization
+## Where decisions live
 
-```
-adrs/
-├── 0001-use-microservices.md
-├── 0002-use-postgresql.md
-├── 0003-use-react.md
-└── README.md  # Index of all ADRs
-```
+**Not in the repository.** A repo's `docs/` is user documentation; a folder of
+ADRs next to the code drifts from it, gets published by accident, and is read
+by nobody at decision time. Decisions, their context and the alternatives go
+to the **knowledge layer** — with Canopy, `intelligence_upsert` as a decision
+node linked to the project and to the facts it rests on (see the
+`canopy-intelligence` skill). What stays in the repo is at most a pointer:
 
----
+- a spec carries the decision as settled (the what and the how), never the
+  debate;
+- a status or roadmap entry names the knowledge node id;
+- a code comment states the invariant the decision protects, not its history.
 
-## ADR Index (README.md)
-
-```markdown
-# Architecture Decisions
-
-| Number | Title | Status | Date |
-|--------|-------|--------|------|
-| [ADR-0001](0001-use-microservices.md) | Use Microservices Architecture | Accepted | 2023-01-15 |
-| [ADR-0002](0002-use-postgresql.md) | Use PostgreSQL for Primary Database | Accepted | 2023-01-16 |
-| [ADR-0003](0003-use-react.md) | Use React for Frontend | Accepted | 2023-01-17 |
-```
-
----
-
-## ADR Tools
-
-### MADR (Markdown ADR)
-Simple tool for managing ADRs:
-```bash
-npm install -g madge
-madge init  # Initialize ADR structure
-madge new "Use Kafka for event streaming"  # Create new ADR
-```
-
-### adr-tools
-More comprehensive ADR tool:
-```bash
-npm install -g adr-tools
-adr init docs/adr
-adr new Implement CI/CD pipeline
-```
+The template above is the *shape* of the knowledge node: title, status,
+context, decision, consequences, alternatives. Superseding a decision is a new
+node that links to the old one, which is marked superseded — never an edit
+that erases what was decided before.
 
 ---
 
@@ -217,7 +192,7 @@ adr new Implement CI/CD pipeline
 - **Be specific** — Avoid vague language
 - **Document alternatives** — Show you considered options
 - **Update status** — Keep ADRs current
-- **Reference in code** — Link ADRs to implementation
+- **Point at it** — specs, status files and code comments name the decision node; they do not copy it
 
 ### Don'ts
 - **Don't over-document** — Not every decision needs an ADR

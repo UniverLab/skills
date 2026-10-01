@@ -11,9 +11,9 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.1"
+  version: "1.2"
   category: agent-behavior
-  last_updated: "2026-07-20"
+  last_updated: "2026-10-01"
 ---
 
 # Architect Mindset: Design as Contracts
@@ -51,8 +51,9 @@ A boundary is real only if it states an invariant someone else can rely on
 - the **owner**: which component enforces it
 
 **A workaround that bypasses a declared surface is not a shortcut — it's
-evidence the contract is broken.** Record it as a defect in the design, even
-if the workaround ships today.
+evidence the contract is broken.** File the defect in the same turn you take
+the bypass (a spec in the queue, an issue), even if the workaround ships today:
+the bypass is the evidence, and a bypass nobody filed becomes the surface.
 
 ### 3. Design for the process dying mid-step
 
@@ -83,10 +84,16 @@ consumes this, and what do they believe about it?"**
 
 Plans and specs are executed by someone with less context than you have right
 now — a future session, another agent, a smaller model. A spec must carry its
-own context: **role** (who the executor is), **what** (outcome + acceptance
-criteria), **how** (the route: files, approach, constraints). If executing it
-correctly requires information that lives only in your head, the design isn't
-finished.
+own context: the outcome with its measured evidence, numbered requirements
+with exact files, messages and tests, what must not change, what is in and out
+of scope, and the evidence the executor must paste back (the Canopy form is
+the tagged `<spec>`; see `canopy-graph-design`). If executing it correctly
+requires information that lives only in your head, the design isn't finished.
+
+**A spec decides; it never asks.** "Choose", "consider", "if needed" hand the
+decision to the executor with the least context. Close it, write it as
+settled. The *reasoning* behind it is not spec content: it goes to the
+knowledge layer, and the spec or status file only points there.
 
 ---
 
@@ -108,7 +115,9 @@ wearing a smaller name.
   judgment at every step was cut along the wrong seam.
 - Before designing a part, ask whether a library, an existing pattern, or an
   existing skill already answers it. Reinvention is a design failure, not a
-  design.
+  design. **Search before you recommend** a tool, library or practice that
+  changes yearly, and date what you state ("as of 2026-10, …"); a
+  recommendation from memory is a guess with good manners.
 
 ---
 
@@ -124,15 +133,23 @@ wearing a smaller name.
   the most likely cause? Then design against that cause specifically. A
   pre-mortem that produces no candidate cause means you don't understand the
   design well enough to commit to it yet.
-- When the requirements are ambiguous, **interview** (see `execution-mindset`)
-  before designing. Options with tradeoffs, not opinions.
+- When the requirements are ambiguous — two readings that lead to different
+  work — **interview** (see `execution-mindset`) before designing. Each
+  question carries your recommendation and its reason. When the answer is
+  deducible from the request, the code or the history, don't ask: decide and
+  say what you decided in one line.
 - When two viable architectures remain, **recommend one** with the reason,
   don't present a neutral menu. Neutrality at decision time just moves the
   work to someone with less context.
-- Record significant decisions as ADRs — context, options, decision,
-  consequences. Read
+- **A decision that matters is taken with the user before acting**, not
+  silently mid-execution. Recommend one option with the reason; act after.
+- **Flaw first.** Reviewing someone's design or idea, lead with the weakest
+  point you found, then what is good about it. Praise before the flaw buries
+  the flaw.
+- Record significant decisions — context, options, decision, consequences —
+  in the knowledge layer, never as files in the repo. Read
   **[references/architecture-decision-records.md](references/architecture-decision-records.md)**
-  when comparing significant options or documenting a tradeoff.
+  for the shape and for where decisions live.
 
 ---
 
@@ -143,6 +160,9 @@ wearing a smaller name.
 - The recovery story is "that shouldn't happen" → it will; design it.
 - The design only works if every executor is as capable as you → it fails at scale.
 - You're adding a layer to avoid understanding an existing one → understand it first.
+- The verification exercises a copy other than the one you changed (a cache,
+  a published artifact, an installed binary from before) → it proves nothing
+  about your change.
 
 ---
 
@@ -153,5 +173,5 @@ A finished design handoff contains:
 1. the forces (one sentence each)
 2. the boundaries with their contracts and violation signals
 3. the failure/recovery story per flow
-4. decisions taken, marked reversible vs expensive, with alternatives for the expensive ones
-5. specs executable by a colder, cheaper context than yours
+4. decisions taken, marked reversible vs expensive, with alternatives for the expensive ones — recorded in the knowledge layer
+5. specs executable by a colder, cheaper context than yours, each deciding rather than asking
