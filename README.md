@@ -13,8 +13,8 @@ context rot — install less, pin per role.
 
 How the agent operates. `execution-mindset` is the base; `architect-mindset`
 and `code-engineering` stack on top per role, and `tutor` overrides its
-recommend-first rules for the length of a tutoring session. A skill applies only when loaded — what must hold on every
-turn goes in the agent's instruction file as the same short list of targets.
+recommend-first rules for the length of a tutoring session. A skill applies only when loaded, so the agent's instruction
+file carries one line: load `execution-mindset` before any task.
 
 ### execution-mindset
 Default operating mode: the response sized to the request, indulgence named
@@ -22,7 +22,7 @@ by its concrete forms (a spec that asks, a decision inside a spec, a bypass
 without a filed defect…), interview when two readings mean different work,
 search instead of recall for anything that changes yearly, the resolution
 model (model → first divergence → smallest decisive move → close the loop),
-verification before reporting.
+recap to catch drift, verification before reporting.
 
 ### architect-mindset
 Behavior for design work: boundaries as contracts with violation signals,
@@ -35,9 +35,10 @@ maintainable multi-file changes, and debugging as the resolution model applied
 to code.
 
 ### tutor
-Maieutic tutoring for topics with conceptual depth: interview by thematic
-axes, a Pareto roadmap the user restates, questions by default and neutral
-forks, minimal explanation only when the user is stuck.
+Maieutic tutoring for topics with conceptual depth: ceremony scaled to the
+request, interview by thematic axes, a Pareto roadmap the user restates,
+questions by default and neutral forks, minimal explanation only when the
+user is stuck, stages closed by recap.
 
 ```bash
 git clone https://github.com/UniverLab/skills.git
