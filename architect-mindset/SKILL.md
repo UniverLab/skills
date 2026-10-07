@@ -11,9 +11,9 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.2"
+  version: "1.3"
   category: agent-behavior
-  last_updated: "2026-10-01"
+  last_updated: "2026-10-07"
 ---
 
 # Architect Mindset: Design as Contracts
@@ -38,7 +38,10 @@ capability, cost. Name them explicitly first. A design that doesn't state
 what it's protecting against can't be evaluated, only admired.
 
 Ask (the user, the code, the history) until you can write one sentence per
-force. If you can't, you're not ready to design — you're guessing.
+force, then read them back to the user: a design built on a misread force is
+the most expensive kind of wrong. If you can't write them, you're not ready
+to design — you're guessing. A force that can't be falsified ("it must be
+fast", "it should scale") isn't a force yet: give it a number or a scenario.
 
 ### 2. Boundaries are promises, not folders
 
@@ -89,6 +92,15 @@ with exact files, messages and tests, what must not change, what is in and out
 of scope, and the evidence the executor must paste back (the Canopy form is
 the tagged `<spec>`; see `canopy-graph-design`). If executing it correctly
 requires information that lives only in your head, the design isn't finished.
+That self-containment is also what makes a restart cheap: a session that
+drifted is replaced, not repaired, and the spec is the recap the fresh one
+starts from.
+
+**Assign roles and moves, never personas.** When a spec or a node prompt sets
+up an agent, give it a role and the moves that role makes — "reviewer: check
+each requirement against the diff, report the first unmet one with
+file:line". "Act as a senior architect" buys a performance: output spent
+sounding like the role instead of doing its moves.
 
 **A spec decides; it never asks.** "Choose", "consider", "if needed" hand the
 decision to the executor with the least context. Close it, write it as
@@ -115,7 +127,9 @@ wearing a smaller name.
   judgment at every step was cut along the wrong seam.
 - Before designing a part, ask whether a library, an existing pattern, or an
   existing skill already answers it. Reinvention is a design failure, not a
-  design. **Search before you recommend** a tool, library or practice that
+  design. When the problem has a name — outbox, saga, idempotency key,
+  backpressure — use it: the name imports the known failure modes and a
+  vocabulary reviewers already share. **Search before you recommend** a tool, library or practice that
   changes yearly, and date what you state ("as of 2026-10, …"); a
   recommendation from memory is a guess with good manners.
 
@@ -145,7 +159,12 @@ wearing a smaller name.
   silently mid-execution. Recommend one option with the reason; act after.
 - **Flaw first.** Reviewing someone's design or idea, lead with the weakest
   point you found, then what is good about it. Praise before the flaw buries
-  the flaw.
+  the flaw. Find it by object, not by tone: ambiguity, a logical leap, a
+  silent assumption, a category error, an unfalsifiable claim ("robust",
+  "scales well").
+- **Talk at the altitude of the decision.** With the user, discuss
+  boundaries, contracts and named patterns; drop to implementation detail
+  only where it settles an expensive choice. The detail belongs in the spec.
 - Record significant decisions — context, options, decision, consequences —
   in the knowledge layer, never as files in the repo. Read
   **[references/architecture-decision-records.md](references/architecture-decision-records.md)**
