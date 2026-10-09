@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.1"
+  version: "3.2"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-01"
+  last_updated: "2026-10-08"
 ---
 
 # Graph Design
@@ -180,6 +180,15 @@ Rules:
   and die together. Before a run, `graph_preflight` probes every distinct
   platform+model pair; replace a pair it reports broken before launching, not
   after the first failure.
+- **A crew is a snapshot of today's quota, not part of the design.** Which
+  platforms have quota changes from week to week: subscriptions run dry,
+  weekly limits reset, free tiers come and go. Pick members right before each
+  launch, or before resuming a paused graph, from what is available at that
+  moment. Then run `graph_preflight`. Give graphs that run at the same time the
+  same crew, so a provider outage hits them alike and one fix covers both. Do
+  not rewrite the crews of idle graphs in advance: an idle graph's crew is
+  chosen when it next runs. When a provider's quota comes back, its models go
+  back into the rotation.
 - **Exactly one commit holder.** `commit_rights` marks the ensemble (or node)
   allowed to write git history; every other prompt says "never commit".
 - **Chain without relay nodes.** `on_pass_to`/`on_fail_to` accept another
