@@ -159,6 +159,7 @@ snapshotted per spec, so the change takes effect on the next one. Changing the
 | Halt after current node | `graph_pause` |
 | Retry current node | `graph_continue(action="retry_current_node")` |
 | Skip to next spec | `graph_continue(action="skip_next_spec")` |
+| Start a spec at a chosen node (directed run) | `graph_continue(action="run_from_node", node_id, spec_id?)`; the first spec of a `graph_run` can use `start_node_id` instead. Reuses earlier nodes' recorded output; refused while the graph has an active run |
 | Re-open a failed/completed graph | `graph_reset` (optionally `{specs:[…]}`), then `graph_run` |
 | Resume once at an exact future time | `graph_schedule_autorun(graph_id, at)` |
 | Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
@@ -175,7 +176,8 @@ Learned from real incidents; each row was needed at least once.
 |---|---|
 | `draft` / `pending` | `graph_run` |
 | `paused` | `graph_continue` (`retry_current_node` or `skip_next_spec`) |
-| `running` but the daemon restarted (zombie: no child process behind it) | `graph_pause`, then `graph_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. |
+| `running` but the daemon restarted (zombie: no child process behind it) | `graph_pause`, then `graph_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. A clean stop or crash that killed a node already leaves the graph `paused` with the spec `interrupted`; `graph_continue(retry_current_node)` then re-runs that same node. |
+| `paused` with a blocker from a no-verdict ensemble | Fix the members with `graph_update_ensemble` if they are at fault, then `graph_continue(retry_current_node)`, which re-enters the ensemble without re-running passed nodes. A `graph_run` on a blocked graph is refused. |
 | `failed` | `graph_reset` (clears the failed state, keeps completed specs), then `graph_run` for a single clean launch. `graph_reset` with no `specs` resets only non-completed specs, so `graph_run` resumes at the first pending one — nothing already done is re-implemented. |
 | `completed` | `graph_reset {specs:[…]}` to re-open specific specs, then `graph_run`. |
 | `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
@@ -215,16 +217,18 @@ deprecated `pool_id` argument.)
 | `queue_create` | create an empty queue |
 | `queue_add_spec {queue_id, spec_id, group?}` | append a backlog spec; optional `group` shares a warm session (below) |
 | `queue_remove_spec` | drop a spec from the queue |
-| `queue_reorder {queue_id, spec_ids}` | total reorder — pass **every** member exactly once, in the desired order |
+| `queue_reorder {queue_id, spec_ids}` | total reorder — pass **every** member exactly once, in the desired order; refused if it would split a group's pending members |
+| `queue_set_group {queue_id, spec_id, group?}` | set or clear (omit `group`) one member's group in place; the member moves next to its group |
 | `queue_list {queue_id?}` | one queue's ordered members, or all queues in summary |
 
 **Warm-context groups.** `group` on `queue_add_spec` makes a spec resume the
 session of the previous **successfully-completed** sibling in the same group
 instead of analyzing the repo cold — see *Spec Groups* in `SKILL.md`. Group
 only an ordered sequence over the same surface; leave unrelated specs ungrouped.
-There is no "set group in place" tool: to (re)group an existing member, remove
-it and re-add it with the `group`, then `queue_reorder` to restore position.
-`queue_reorder` preserves each member's group; it only moves positions.
+A grouped add lands after the group's last pending member. To (re)group an
+existing member, use `queue_set_group` (or `canopy queue group`), not remove and
+re-add. `queue_reorder` keeps each group's pending members contiguous and
+refuses an order that would split one.
 
 **Membership vs. status.** `queue_*` tools change membership only; a spec's
 run status (pending / completed / failed) lives on the spec, so removing and
