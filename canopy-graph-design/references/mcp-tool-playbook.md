@@ -159,6 +159,7 @@ snapshotted per spec, so the change takes effect on the next one. Changing the
 | Halt after current node | `graph_pause` |
 | Retry current node | `graph_continue(action="retry_current_node")` |
 | Skip to next spec | `graph_continue(action="skip_next_spec")` |
+| Start a spec at a chosen node | `graph_continue(action="run_from_node", node_id=…, spec_id=…)` |
 | Re-open a failed/completed graph | `graph_reset` (optionally `{specs:[…]}`), then `graph_run` |
 | Resume once at an exact future time | `graph_schedule_autorun(graph_id, at)` |
 | Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
@@ -179,6 +180,7 @@ Learned from real incidents; each row was needed at least once.
 | `failed` | `graph_reset` (clears the failed state, keeps completed specs), then `graph_run` for a single clean launch. `graph_reset` with no `specs` resets only non-completed specs, so `graph_run` resumes at the first pending one — nothing already done is re-implemented. |
 | `completed` | `graph_reset {specs:[…]}` to re-open specific specs, then `graph_run`. |
 | `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
+| `failed` in a queue-driven graph, when only the failed member's tail must be redone | `graph_continue(action="run_from_node", node_id=…, spec_id=…)` — see *Restarting one member* below. Omit `spec_id` and the failed member is the default. |
 
 **Prefer `graph_reset` + `graph_run` over `graph_schedule_autorun` for manual recovery.**
 `graph_schedule_autorun` auto-resets and resumes when it fires — convenient, but its
@@ -230,6 +232,18 @@ it and re-add it with the `group`, then `queue_reorder` to restore position.
 run status (pending / completed / failed) lives on the spec, so removing and
 re-adding a spec does not re-run an already-completed one — `graph_run` still
 resumes at the first non-completed member.
+
+**Restarting one member.** `graph_continue(action="run_from_node", node_id=…,
+spec_id=…)` on a queue-driven graph restarts the member you name, at the node
+you name. The chosen member becomes the graph's current spec: the members
+queued before it are marked `skipped`, the members after it run in their usual
+order, and a member left `running` by a stale state goes back to `pending` for
+a later run. Omit `spec_id` and the default is the running/interrupted member,
+else the failed one, else the next pending one. The node you name always runs
+first — including the node an ensemble fans out from: that node runs, and
+routing then fans out to the ensemble from there. The reply names the same
+spec and the same first node the engine will run ("Directed run: spec '…'
+starts at node '…'"), so read it before assuming which spec was picked up.
 
 ---
 
