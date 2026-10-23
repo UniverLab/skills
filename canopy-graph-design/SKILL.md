@@ -99,6 +99,13 @@ Rules of thumb:
 - **Name what must never be touched.** Agents run with the user's HOME: say
   which caches, configs and binaries are off limits (`~/.local/bin`, the
   tool's own config dir, anything a `new`/`refresh` command would overwrite).
+- **Name the spec with the commit it will become**: a Conventional Commits
+  title, `fix(tui): open F1 from inside a session`. Canopy parses the type and
+  scope, stores the subject, numbers the spec by change type (`FIX-7`) and
+  builds its commit message; commit nodes read it as `{{spec_commit_message}}`
+  or `$CANOPY_SPEC_COMMIT_MESSAGE`, so the commit is deterministic. Never write
+  a code by hand, in the name or the commit. A graph with `require_spec_type`
+  refuses untyped specs in its queue.
 - Narrow intent: one defect or one feature per spec. Big specs outrun CLI
   session quotas mid-run — that alone justifies splitting.
 - Write specs and node prompts in **English** — models follow English
