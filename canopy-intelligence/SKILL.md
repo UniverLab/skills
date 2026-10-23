@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "1.1"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-07-14"
+  last_updated: "2026-10-14"
 ---
 
 # Canopy Intelligence: The Project's Brain
@@ -63,6 +63,15 @@ your session workdir — just pass kind, title, and body.
 - a workflow pattern ("PRs require cargo fmt + clippy + test before merge")
 - an architectural decision ("hexagonal: domain has no infra deps")
 - a testing convention ("DB tests use `tempfile::NamedTempFile` for isolation")
+
+### Relations are all-or-nothing
+
+`intelligence_upsert` writes the node and its relations in one transaction. If
+a relation's target cannot be resolved, the whole call fails and nothing is
+written, so no half-created duplicate is left behind. Retrying the same call
+after fixing the target is safe. A relation target may be a short id prefix,
+which is resolved to the full id before writing. Create the target node first
+when it does not exist yet.
 
 ### Timing
 

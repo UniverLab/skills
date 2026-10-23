@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "1.1"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-07-14"
+  last_updated: "2026-10-14"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -48,8 +48,12 @@ already know?" before re-deriving anything. (Details: `canopy-intelligence`.)
 
 ### 2. Background agents (cron / file-watch)
 Any prompt can run on a schedule or fire when files change — on any installed
-CLI platform. Starter ideas: nightly dependency audit, docs drift checker,
-"summarize what changed today", data-pipeline sanity checks on file arrival.
+CLI platform. An agent can also deliver its prompt into a live interactive
+session (`action: send_to_session`, targeted by session name) instead of
+spawning a headless CLI; use it when the work belongs in a session someone is
+already watching. Starter ideas: nightly dependency audit, docs drift checker,
+"summarize what changed today", data-pipeline sanity checks on file arrival,
+a 6am nudge into the orchestrator session.
 
 ### 3. Loops (autonomous work queues)
 A reusable graph of agent / check / gate nodes consumes a queue of specs:
@@ -88,7 +92,9 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "Work through this backlog without me" | Specs + queue + graph |
 | "Two agents keep stepping on each other" | Sync protocol |
 | "Ask questions over these papers/docs" | RAG |
-| "Send my agent a prompt at 6am" | Prompt builder scheduled send |
+| "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `action: send_to_session` |
+| "Which harness/model does each graph use?" | `graph_crew` (no prompt text returned) |
+| "Don't use that model/provider right now" | Availability roster (`roster_set`) |
 
 When proposing, be concrete: name the trigger, the platform, the verification
 step, and what "done" looks like. An automation without a deterministic check

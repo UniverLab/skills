@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "1.1"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-09-22"
+  last_updated: "2026-10-14"
 ---
 
 # Graph Reviewer: Audit Before It Costs
@@ -36,7 +36,8 @@ chunks until you have all of it.
 
 **Never read the SQLite database directly.** If the surface cannot answer
 something, that is itself a finding: report the missing capability instead of
-working around it.
+working around it. The run's recorded history is in `graph_events` and
+`graph_node_runs_list`; read those rather than inferring it.
 
 ---
 
@@ -57,6 +58,22 @@ Structural defects are cheap to find and expensive to hit.
 - **A node that only reports `pass` is a decision, not a bug** — a resilience
   node whose `fail` means "stop for a human" is correct. Confirm it is
   deliberate rather than assuming either way.
+- **Ensembles and crews are sized and bound.** A `parallel` ensemble has 2–8
+  members by default (up to the configured cap), and a `cascade` or
+  `round_robin` has 2–16. A `crew` binding must name an existing crew. Check
+  that the members are not all on one platform: they share a quota and die
+  together.
+- **Nothing is dispatched to an unavailable pair.** `graph_preflight` lists
+  roster-unavailable members under `skipped_unavailable`. An ensemble the
+  roster leaves too small to run is reported as `would_fail`. Both are findings
+  before the run, not surprises during it.
+- **Check commands use only known markers.** An unknown `{{…}}` marker, or
+  `{{spec_content}}` (not a check-command marker), fails the node before it
+  runs. Use `"$CANOPY_SPEC_FILE"` for the spec text.
+- **Hooks are as written.** An interactive hook has exactly one of
+  `target_session_id` or `target_session_name`. A command hook does not start a
+  canopy binary, and it does not keep a run log that `graph_events` already
+  records.
 
 ---
 
@@ -112,8 +129,11 @@ This is where graphs actually fail, and the part most reviews skip.
   is mechanical. Spend the expensive budget on judgment.
 - **Are cheap bounces staying cheap?** Gate failures and cheap-reviewer
   change-requests should return to a free implementer, never escalate.
-- **Context groups**: specs touching the same files should share a group, so
-  each resumes the previous one's warm session instead of re-reading the repo.
+- **Context groups**: group only a sequence of specs over the same surface,
+  where each step assumes the one before it. A grouped spec resumes the warm
+  session of its previous successful sibling. Flag an unrelated spec placed in
+  a group, because it inherits a session full of stale assumptions. Flag a
+  group whose pending members are split apart in the queue.
 - **Pinned skills**: cheap nodes benefit from a role skill at no cost. The
   expensive node usually does not — it needs the diff, not instructions on
   how to reason, and every appended token is quota on the node you are
@@ -132,8 +152,10 @@ This is where graphs actually fail, and the part most reviews skip.
   not say "read the tree first and continue from it" produces a rewrite.
 - **Is context that must survive several hops carried by something durable?**
   If feedback only reaches the next node, anything the graph needs three hops
-  later has to live in a file or be re-derived. Check that whatever the design
-  assumes is actually available where it is read.
+  later has to live in a file, in a spec note, or be re-derived. A spec note
+  written with `spec_note_write` reaches every later agent node of the spec in
+  its `[SPEC NOTES]` section. Check that whatever the design assumes is
+  actually available where it is read.
 - **Are the destructive prohibitions present** where they matter — no
   committing from a non-committer, no pushing, no history rewriting?
 - **Does any node risk killing its own run?** A graph working on a tool whose
@@ -153,6 +175,10 @@ This is where graphs actually fail, and the part most reviews skip.
   work that was never wrong.
 - **Is a bare timeout classified honestly?** It is not a recognised transient
   failure. Treating it as one sends the work straight back into the same wall.
+- **Does a stop have a route?** A daemon stop finalizes the killed node as
+  `interrupted`, and an ensemble with no verdict pauses with a blocker. Neither
+  takes a fail edge. Check that the graph's recovery plan is `graph_continue`
+  (retry, or a directed run) and not an edge that was never going to fire.
 
 ---
 

@@ -138,8 +138,13 @@ justify. Separate bugs and unrelated areas stay ungrouped and cold.
   starts cold rather than resuming a broken session — a failed run is not a
   context worth inheriting.
 - Grouping is a property of queue membership, not of the spec: the same spec
-  can be ungrouped in one queue and grouped in another. Set it when adding, or
-  re-add with a `group` to change it (see the playbook's queue section).
+  can be ungrouped in one queue and grouped in another. Set it when adding
+  (`queue_add_spec` with `group`; a grouped add lands after the group's last
+  pending member), or change it in place with `queue_set_group` (or
+  `canopy queue group`). `queue_set_group` moves the member next to its group.
+- A group's pending members must stay contiguous. `queue_reorder` refuses an
+  order that would split a group and changes nothing; reorder around the group
+  instead.
 
 ---
 
@@ -164,6 +169,16 @@ This is the constraint that shapes every graph longer than three nodes:
 
 Design the chain short, or give it durable ground to stand on. See
 `references/graph-patterns.md` → pattern 9.
+
+**Spec notes are the shared working memory.** Every spec carries one note per
+owner (per node, or per ensemble when the writer is a member). A node records
+its plan, decisions or open questions with `spec_note_write(run_id, body)`
+(body at most 2 500 characters). Every later agent node of the same spec
+receives the notes in a `[SPEC NOTES]` section (5 000-character budget, never
+truncated mid-note), so a Designer's plan reaches the implementer without a
+temp file. Notes survive bounces, resumes and `graph_continue`. `graph_reset`
+keeps them unless `clear_notes: true`. Read a spec's notes with
+`spec_notes_get` or `canopy spec notes <spec-id>`.
 
 ---
 
@@ -205,7 +220,25 @@ Rules:
   member takes the first attempt: put the strongest model where a wrong first
   attempt is expensive (the designer), the cheapest where attempts are mostly
   mechanical (the committer).
-- The attempt ceiling applies per ensemble: 5 entries per spec per run.
+- The attempt ceiling applies per ensemble: 5 entries per spec per run
+  (`graphs.max_iterations_per_node`).
+- **Member caps are per kind and configurable.** A `parallel` ensemble takes
+  2–8 members by default (`graphs.ensemble_max_members_parallel`, up to 16). A
+  `cascade` or `round_robin` takes 2–16 (`graphs.ensemble_max_members_sequential`,
+  up to 32). Do not assume the old fixed 8.
+- **Bind a crew instead of copying members.** A crew is a named, ordered member
+  list (`crew_create`). An ensemble or node binds it with `crew: "name"` (the
+  node config, or `graph_add_ensemble`/`graph_update_ensemble`), so a role's
+  members are written once. `crew_update` reaches every bound ensemble at its
+  next dispatch. `crew_delete` is refused while anything binds the crew. Use
+  `graph_crew` to see every harness/model a graph uses, with no prompt text.
+- **Unavailable members are skipped, not edited.** Declare a platform or model
+  out with `roster_set` (optionally `until`). Dispatch then skips it: a parallel
+  quorum counts only the available members, cascade falls through, and
+  round_robin steps over it. An ensemble with too few members left blocks the
+  spec, with a blocker that names the pair. It does not burn an attempt. Clear
+  the entry with `roster_clear`. `graph_preflight` never probes an unavailable
+  pair.
 
 ---
 
@@ -217,20 +250,27 @@ and often something else has to start. `graph_update` takes an event-keyed
 each an ordered list. Each hook is exactly one mode:
 
 - **command** — a shell line with the `CANOPY_HOOK_*` variables exported
-  (`GRAPH_NAME`, `SPEC_NAME`, `NODE`, `BLOCKER`, …). Use it for an append-only
-  log. **Never start a canopy binary from a hook**: daemon-startup recovery
-  kills live runs, including the one that fired the hook.
+  (`GRAPH_NAME`, `SPEC_NAME`, `NODE`, `BLOCKER`, …). **Never start a canopy
+  binary from a hook**: daemon-startup recovery kills live runs, including the
+  one that fired the hook. Do not use a hook as a run log either: the engine
+  already records the history. Read it with `graph_events` (or
+  `canopy graph log`), so no `printf >> file` hook is needed.
 - **interactive** — a prompt delivered into a live session by
   `target_session_name` (resolved by name on every fire, so it survives
-  restarts). Use it to wake the orchestrating session on `on_failed` /
-  `on_blocked` with `{{node}}` and `{{blocker}}`, and on `on_completed` with
-  what to review.
+  restarts) or by `target_session_id` (exact, but goes stale when the session
+  is replaced; firing then fails naming the id). Prefer the name. Use it to
+  wake the orchestrating session on `on_failed` / `on_blocked` with `{{node}}`
+  and `{{blocker}}`, and on `on_completed` with what to review. A message
+  queued while no TUI runs is delivered when one starts.
 - **graph** — `target_graph_id` launches another graph in-process, with a
   `queue_id` or an `idea`. Use it to chain phases (pattern 10: a spec graph
   hands its branch to a spec-less quality graph).
 - **agent** — a one-shot agent run with platform/model/prompt.
 
 Hooks are not retroactive: one registered after its event fired does not fire.
+Hooks are read when each event fires, so a `graph_update` of hooks on a running
+graph changes the events still to come. The response names those events. A
+failing hook is recorded and never changes the graph's status.
 
 ---
 
@@ -241,6 +281,11 @@ Hooks are not retroactive: one registered after its event fired does not fire.
 - `agent` — produces or analyzes work
 - `check` — verifies with commands or deterministic checks
 - `gate` — decides the next route based on prior output
+- `router` — routes by token matching. With `"decision": true` it asks the
+  platform's decision model (a typed-choice classifier, no agent spawned) which
+  declared route to take, with an optional `min_confidence` that sends
+  low-confidence answers to the fallback. The platform must declare
+  `decision_args` in the registry, or the node is refused.
 
 If the graph needs iteration, use edges and gates. If it is linear, keep it
 simple.
@@ -289,6 +334,22 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
 - Give failure knowledge somewhere to go: a resilience branch (pattern 8)
   that triages the failed implement — quota deaths schedule their own
   autorun instead of silently losing the reset time.
+- A daemon stop or crash finalizes the killed node as **interrupted** and
+  routes no edge, so its fail edge never fires. On the next start the graph
+  is `Paused` with the spec `Interrupted`. `graph_continue` with `retry`
+  re-runs that same node with the same input.
+- A parallel or round-robin ensemble that ends with no verdict pauses with a
+  blocker and marks the spec `interrupted`, not `failed`. Edit the members if
+  they are at fault, then `graph_continue retry_current_node`. A `graph_run` on
+  a blocked graph is refused, so a blind relaunch cannot hide the blocker.
+- **Directed run.** When everything before a node is already good, start a
+  spec at that node: `graph_continue run_from_node` (with `spec`), or
+  `graph_run` with `start_node_id` for the first spec. It reuses the recorded
+  output of every earlier node and refuses, naming the node, when a reachable
+  prompt or check needs output that was never recorded.
+- A spec that ends `Failed` or `Interrupted` with a dirty tree blocks the next
+  spec on that workdir. `graph_run` refuses, and names the blocking spec. Finish,
+  reset or remove that spec, or set `allow_dirty_start`.
 
 ### 6b. Who supervises the graph — the recovery hierarchy
 
@@ -327,6 +388,12 @@ hundred times:
   node, so agents run the exact same gate before reporting pass and the gate
   is reviewed like code. Scope it to the spec's change with
   `--changed "{{spec_start_head}}"`.
+- **Check commands take markers, not `{{spec_content}}`.** Use `{{spec_name}}`,
+  `{{spec_id}}`, `{{workdir}}` and the commit markers. They are shell-quoted, so
+  do not wrap them in other quotes. For the spec text, read
+  `"$CANOPY_SPEC_FILE"`. For the notes, read `"$CANOPY_SPEC_NOTES_FILE"`. Any
+  unknown `{{…}}` fails the node before the command runs. `graph_preflight`
+  reports it first.
 - **Never touch state outside the repo**: no tool command that refreshes a
   cache from the network, rewrites a user config, or installs a binary. If the
   tool under test has such a command, the gate renders or copies around it.
