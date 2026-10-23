@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.3"
+  version: "3.4"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-19"
+  last_updated: "2026-10-23"
 ---
 
 # Graph Design
