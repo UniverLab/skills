@@ -160,7 +160,7 @@ snapshotted per spec, so the change takes effect on the next one. Changing the
 | Retry current node | `graph_continue(action="retry_current_node")` |
 | Skip to next spec | `graph_continue(action="skip_next_spec")` |
 | Start a spec at a chosen node (directed run) | `graph_continue(action="run_from_node", node_id, spec_id?)`; the first spec of a `graph_run` can use `start_node_id` instead. Reuses earlier nodes' recorded output; refused while the graph has an active run |
-| Re-open a failed/completed graph | `graph_reset` (optionally `{specs:[…]}`), then `graph_run` |
+| Re-open a failed/completed graph | `graph_reset` (optionally `{specs:[…]}`; a named spec's execution count is zeroed, a reset without `specs` keeps it), then `graph_run` |
 | Resume once at an exact future time | `graph_schedule_autorun(graph_id, at)` |
 | Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
 | Node reports success/failure | `graph_complete_node` |
@@ -178,9 +178,12 @@ Learned from real incidents; each row was needed at least once.
 | `paused` | `graph_continue` (`retry_current_node` or `skip_next_spec`) |
 | `running` but the daemon restarted (zombie: no child process behind it) | `graph_pause`, then `graph_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. A clean stop or crash that killed a node already leaves the graph `paused` with the spec `interrupted`; `graph_continue(retry_current_node)` then re-runs that same node. |
 | `paused` with a blocker from a no-verdict ensemble | Fix the members with `graph_update_ensemble` if they are at fault, then `graph_continue(retry_current_node)`, which re-enters the ensemble without re-running passed nodes. A `graph_run` on a blocked graph is refused. |
-| `failed` | `graph_reset` (clears the failed state, keeps completed specs), then `graph_run` for a single clean launch. `graph_reset` with no `specs` resets only non-completed specs, so `graph_run` resumes at the first pending one — nothing already done is re-implemented. |
+| `failed` | `graph_reset` (clears the failed state, keeps completed specs), then `graph_run` for a single clean launch. `graph_reset` with no `specs` resets only non-completed specs, so `graph_run` resumes at the first pending one — nothing already done is re-implemented. To redo only what failed instead, `graph_continue(action="retry_current_node")` is now accepted on a `failed` graph too: it restarts the failed spec at the node it failed on as a directed run (upstream outputs reused) and clears that spec's execution count; `graph_continue(action="skip_next_spec")` skips the failed spec directly. |
 | `completed` | `graph_reset {specs:[…]}` to re-open specific specs, then `graph_run`. |
 | `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
+| `failed` in a queue-driven graph, when only the failed member's tail must be redone | `graph_continue(action="run_from_node", node_id=…, spec_id=…)` — see *Restarting one member* below. Omit `spec_id` and the failed member is the default. |
+| `failed` with blocker `… failed N time(s) across separate graph executions (limit 3) …` | The per-spec **execution limit** (default 3; genuine verdicts only). `graph_reset {specs:[<spec id>]}` zeroes that spec's count — worktree untouched — then `graph_run`; or give an explicit directive (`graph_run` `start_node_id`, `graph_continue` `run_from_node` / `retry_current_node`), which clears it automatically and replies `Execution limit reset for spec '…'`. Automatic re-runs (autorun, cron) never clear it. |
+| `paused` with a blocker listing dirty paths between queue specs | The **between-specs dirty-tree guard** held the queue at the next spec instead of failing it. Ways out: `graph_continue(action="run_from_node", …)` on that spec, clean the tree by hand then `graph_continue(skip_next_spec)`, or `allow_dirty_start: true` via `graph_update`. |
 
 **Prefer `graph_reset` + `graph_run` over `graph_schedule_autorun` for manual recovery.**
 `graph_schedule_autorun` auto-resets and resumes when it fires — convenient, but its
@@ -234,6 +237,18 @@ refuses an order that would split one.
 run status (pending / completed / failed) lives on the spec, so removing and
 re-adding a spec does not re-run an already-completed one — `graph_run` still
 resumes at the first non-completed member.
+
+**Restarting one member.** `graph_continue(action="run_from_node", node_id=…,
+spec_id=…)` on a queue-driven graph restarts the member you name, at the node
+you name. The chosen member becomes the graph's current spec: the members
+queued before it are marked `skipped`, the members after it run in their usual
+order, and a member left `running` by a stale state goes back to `pending` for
+a later run. Omit `spec_id` and the default is the running/interrupted member,
+else the failed one, else the next pending one. The node you name always runs
+first — including the node an ensemble fans out from: that node runs, and
+routing then fans out to the ensemble from there. The reply names the same
+spec and the same first node the engine will run ("Directed run: spec '…'
+starts at node '…'"), so read it before assuming which spec was picked up.
 
 ---
 
