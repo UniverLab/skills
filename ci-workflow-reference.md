@@ -1,6 +1,6 @@
 # CI Workflow Commands & Common Failures
 
-## Cargo binary projects (cadspec, ghscaff, gitkit, texforge, demostage)
+## Cargo binary projects (ghscaff, gitkit, texforge, demostage)
 
 ```bash
 # Generate/fix Cargo.lock
