@@ -39,8 +39,5 @@ requires = "canopy"
 [skills.texforge]
 requires = "texforge"
 
-[skills.cadspec]
-requires = "cadspec"
-
 [skills.demostage]
 requires = "demo"

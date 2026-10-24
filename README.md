@@ -82,10 +82,6 @@ binary is available.
 CLI to compile LaTeX documents to PDF without TeX Live, MiKTeX, or external
 dependencies. Uses tectonic as the internal engine. Requires `texforge`.
 
-### cadspec
-CLI for CAD as code: declarative geometry in `.cf` files (TOML), compiled to
-DXF with PNG preview. Requires `cadspec`.
-
 ### demostage
 CLI for making terminal demos as reproducible code. Capture, record, export
 to gif/mp4. Requires `demo`.
