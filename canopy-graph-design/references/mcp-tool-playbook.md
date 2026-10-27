@@ -29,6 +29,13 @@ call can see (graph-validation rule 10).
   implicit: the node with no incoming edges.
 - Import always creates a **new** graph; it never updates one. A name collision
   gets a numeric suffix, and the response says which name was used.
+- `prompt_template` text rides inside the document, but a node's
+  `prompt_preset` rides **by name**. `graph_import` therefore refuses the whole
+  document, naming every preset it cannot resolve, unless
+  `<canopy_dir>/prompts/<name>.md` exists on this machine or the name is a
+  builtin (`implementer`, `reviewer`, `resilience`). Before importing on a
+  different machine, copy the custom preset there — or carry its text as
+  `prompt_template`.
 
 ### Building by hand (when there is no document yet)
 

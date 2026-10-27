@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.4"
+  version: "3.5"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-23"
+  last_updated: "2026-10-26"
 ---
 
 # Graph Design
@@ -441,6 +441,12 @@ hundred times:
 Explicit configs: platform, model, `prompt_template` (e.g.
 `{{spec_content}}\n\n{{previous_feedback}}`), `timeout_minutes`. Prompts state
 the goal, expected outputs, constraints, and when to report blocker vs fail.
+
+`prompt_preset` names a preset file instead of carrying text, and export keeps
+only the name — so `graph_import` refuses a document naming a preset this
+machine lacks (`<canopy_dir>/prompts/<name>.md`, or a builtin: `implementer`,
+`reviewer`, `resilience`). In a graph you intend to share, inline the text as
+`prompt_template` or copy the preset file alongside the document.
 
 ### Check nodes
 
