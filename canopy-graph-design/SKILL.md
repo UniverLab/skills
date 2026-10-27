@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.7"
+  version: "3.8"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -354,6 +354,15 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
 - A spec that ends `Failed` or `Interrupted` with a dirty tree blocks the next
   spec on that workdir. `graph_run` refuses, and names the blocking spec. Finish,
   reset or remove that spec, or set `allow_dirty_start`.
+- **Sandboxed runs.** `graph_run` with `sandbox` runs the graph in a temporary
+  git worktree on a `canopy/sandbox-*` branch instead of the operator's
+  checkout. A completed run removes it only when the branch holds no unique
+  commits and the worktree has no uncommitted files; a **failed run always
+  keeps it**, so `graph_continue` resumes inside that worktree (a resume whose
+  worktree is gone is refused, naming the sandbox id — it never falls back to
+  the original workdir). A failed sandbox is the operator's to land or discard:
+  say so and point at `canopy sandbox list`, never relaunch a fresh run over
+  the same work.
 
 ### 6b. Who supervises the graph — the recovery hierarchy
 
