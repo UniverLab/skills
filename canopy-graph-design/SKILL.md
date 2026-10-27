@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.15"
+  version: "3.16"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -445,8 +445,13 @@ hundred times:
    `graph_export` the result so the next one is a single call. Run
    **`graph_validate`** on any document you did not author, or are about to
    hand to someone else — it runs import's checks without writing anything.
-   Then `graph_preflight` before spending a real run. Order, deletes, recovery
-   and the export/import contract in
+   A graph already published in the catalogue needs neither document nor
+   hand-building: **`graph_install {ref, workdir, ...}`** (CLI
+   `canopy graph install <ref>`) fetches it through graphs.univerlab.org —
+   which is what counts the install — validates it, installs its bundled
+   presets and imports it as a new graph in one call. Then `graph_preflight`
+   before spending a real run. Order, deletes, recovery and the
+   export/import contract in
    **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)**.
 6. **Summarize before running** — graph name, specs in order, graph, chosen
    CLIs/models/checks, and what still needs user confirmation. Only call
@@ -480,7 +485,10 @@ overwritten. A preset the document neither bundles nor finds locally still
 refuses the whole import, naming every unknown preset. When you hand a document
 to another machine, bundle its presets and run `graph_validate`: it refuses a
 `prompt_preset` that is neither bundled nor builtin, so no node of the shared
-document depends on a preset that happens to be installed here.
+document depends on a preset that happens to be installed here. `graph_install`
+follows the same refusal rule, and is the only graph call that can replace a
+differing local preset on purpose (`overwrite_presets: true`, CLI
+`--overwrite-presets`).
 
 ### Check nodes
 

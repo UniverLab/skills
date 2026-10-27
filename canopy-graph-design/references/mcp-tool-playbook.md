@@ -54,6 +54,26 @@ call can see (graph-validation rule 10).
   in the config — those belong to the installer. The command line equivalent is
   `canopy graph validate <path> [--json]`.
 
+- `graph_install {ref, workdir, name?, overwrite_presets?}` installs a graph
+  published in the catalogue (base `https://graphs.univerlab.org`, the
+  `graphs.catalogue_url` setting) in one call. `ref` is `<slug>` for an
+  official graph or `<owner>/<repo>/<slug>` for a community one, each with an
+  optional `@<ref>` version suffix; anything else is refused with the accepted
+  forms. It makes exactly one GET through the catalogue — that request is what
+  counts the install, and there is no other network traffic — then runs the
+  same validation as `graph_validate` (every problem listed, nothing written),
+  installs the bundled presets with `graph_import`'s refusal rule, and imports
+  through the same all-or-nothing path: always a new graph, a numeric suffix
+  when the name is taken. `workdir` must be absolute and exist; `name`
+  overrides the document's name. A local preset file whose content differs
+  refuses the whole install naming the file unless `overwrite_presets: true`.
+  The response carries the new graph id and name, the workdir, the presets
+  written, and the agent nodes still without a platform/model together with
+  the next command to assign them. The command line equivalent is
+  `canopy graph install <ref> [--workdir <dir>] [--name <name>]
+  [--overwrite-presets] [--json]` (workdir defaults to the current
+  directory).
+
 ### Building by hand (when there is no document yet)
 
 1. `graph_create` — set `trigger` here if the graph should fire on its own (see below); omit it for a manual-only graph
