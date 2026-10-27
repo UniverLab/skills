@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.12"
+  version: "3.13"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -465,11 +465,15 @@ bind is refused by `graph_add_node`/`graph_update_node` (and by
 `graph_add_ensemble`/`graph_update_ensemble` for the shared prompt and every
 override). Escape a marker meant as literal text as `\{{...}}`.
 
-`prompt_preset` names a preset file instead of carrying text, and export keeps
-only the name — so `graph_import` refuses a document naming a preset this
-machine lacks (`<canopy_dir>/prompts/<name>.md`, or a builtin: `implementer`,
-`reviewer`, `resilience`). In a graph you intend to share, inline the text as
-`prompt_template` or copy the preset file alongside the document.
+`prompt_preset` names a preset file (`<canopy_dir>/prompts/<name>.md`, or a builtin:
+`implementer`, `reviewer`, `resilience`), and export bundles every custom
+preset the graph's agent nodes reference — the full text travels in the
+document's `prompt_presets` array, so a shared graph arrives with working
+nodes and no sidecar files. On import each bundled preset is installed when
+absent locally; an identical local file is a no-op, and a differing one
+refuses the import naming the preset — a locally edited preset is never
+overwritten. A preset the document neither bundles nor finds locally still
+refuses the whole import, naming every unknown preset.
 
 ### Check nodes
 
