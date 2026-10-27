@@ -45,6 +45,16 @@ a node already burned real work. Each rule below broke a real run.
     graph, not of any one edge, so no single `graph_add_edge` call can catch it:
     check it against the finished shape, or build the graph with `graph_import`,
     where the whole document is in front of you at once.
+11. **A node that saturates a shared resource must declare it.** A gate that
+    compiles the whole workspace wants the entire CPU; two such gates from
+    parallel graphs will fight without a guard. Set `mutex: ["cpu"]` in the
+    node's `config` (agent, check, and gate nodes; an ensemble declares one
+    list held per member run). Each name must match
+    `^[a-z][a-z0-9-]{0,31}$` or the write is refused. While parked the run
+    reads status `waiting` — not `running` — and its timeout only starts when
+    the lease is granted, so a queued node is healthy, not stuck. See who
+    holds what with the `mutex` tool (action `list`) or
+    `canopy mutex list`.
 
 Read a failure from the runs table before touching anything: the failing node,
 its iteration count, and its raw output tell you whether the graph, the
