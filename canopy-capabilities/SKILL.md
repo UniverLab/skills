@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.1"
+  version: "1.2"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-10-14"
+  last_updated: "2026-10-27"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -70,7 +70,11 @@ history. (Details: `canopy-sync`.)
 ### 5. Interactive session management (TUI)
 Live terminals for interactive agents, status semaphores, a prompt builder
 (with scheduled sends), project views with backlog/knowledge/history, and
-live graphs — one dashboard over everything above.
+live graphs — one dashboard over everything above. A session also has a
+shelf: send a screenshot, chart or render with `session_send_file` (1–10
+absolute image paths per call, 20 MiB each) and it appears in the person's
+TUI with a toast and opens in their system viewer, instead of you printing a
+path they have to hunt for.
 
 ### 6. RAG over local documents
 Index a directory of PDFs/documents and query it from any agent — useful for
@@ -93,6 +97,7 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "Two agents keep stepping on each other" | Sync protocol |
 | "Ask questions over these papers/docs" | RAG |
 | "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `action: send_to_session` |
+| "The agent made a screenshot/chart and I can't find it" | Session shelf: `session_send_file`, then the TUI's F1 → Shelf tab |
 | "Which harness/model does each graph use?" | `graph_crew` (no prompt text returned) |
 | "Don't use that model/provider right now" | Availability roster (`roster_set`) |
 
