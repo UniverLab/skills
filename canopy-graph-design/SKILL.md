@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.13"
+  version: "3.14"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -262,9 +262,11 @@ each an ordered list. Each hook is exactly one mode:
   comes back as a new session with a fresh id and a fresh generated name,
   and firing then fails naming the old id). Prefer the name. Use it to
   wake the orchestrating session on `on_failed` / `on_blocked` with `{{node}}`
-  and `{{blocker}}`, and on `on_completed` with what to review. A message
-  queued while no TUI runs waits for the next TUI to attach; the target
-  session itself keeps running in the daemon meanwhile.
+  and `{{blocker}}`, and on `on_completed` with what to review. The daemon's
+  scheduler delivers the message on its next tick whether or not a TUI is
+  attached; if the target session is gone by then, the prompt is preserved
+  for recall in that project and a notification says the session was not
+  found. The target session itself keeps running in the daemon meanwhile.
 - **graph** — `target_graph_id` launches another graph in-process, with a
   `queue_id` or an `idea`. Use it to chain phases (pattern 10: a spec graph
   hands its branch to a spec-less quality graph).
