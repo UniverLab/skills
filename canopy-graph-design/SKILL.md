@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.8"
+  version: "3.9"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -256,9 +256,11 @@ each an ordered list. Each hook is exactly one mode:
   already records the history. Read it with `graph_events` (or
   `canopy graph log`), so no `printf >> file` hook is needed.
 - **interactive** — a prompt delivered into a live session by
-  `target_session_name` (resolved by name on every fire, so it survives
-  restarts) or by `target_session_id` (exact, but goes stale when the session
-  is replaced; firing then fails naming the id). Prefer the name. Use it to
+  `target_session_name` (resolved by name on every fire) or by
+  `target_session_id` (exact; it survives a restart or resume canopy
+  recognizes — same id, same name — but a resume canopy does not recognize
+  comes back as a new session with a fresh id and a fresh generated name,
+  and firing then fails naming the old id). Prefer the name. Use it to
   wake the orchestrating session on `on_failed` / `on_blocked` with `{{node}}`
   and `{{blocker}}`, and on `on_completed` with what to review. A message
   queued while no TUI runs is delivered when one starts.
