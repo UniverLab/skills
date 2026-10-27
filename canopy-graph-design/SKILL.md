@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.5"
+  version: "3.6"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-26"
+  last_updated: "2026-10-27"
 ---
 
 # Graph Design
@@ -346,7 +346,11 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   spec at that node: `graph_continue run_from_node` (with `spec`), or
   `graph_run` with `start_node_id` for the first spec. It reuses the recorded
   output of every earlier node and refuses, naming the node, when a reachable
-  prompt or check needs output that was never recorded.
+  prompt or check needs output that was never recorded. On an idea-driven
+  graph (run with an `idea`, no bound specs) the same calls resume the stored
+  idea run — `{{spec_content}}` renders the idea the graph last ran with and
+  no spec needs naming; an idea graph that has never run is refused, naming
+  `graph_run` with an `idea` as the way to start one.
 - A spec that ends `Failed` or `Interrupted` with a dirty tree blocks the next
   spec on that workdir. `graph_run` refuses, and names the blocking spec. Finish,
   reset or remove that spec, or set `allow_dirty_start`.
