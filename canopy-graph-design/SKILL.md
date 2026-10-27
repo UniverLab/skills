@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.9"
+  version: "3.10"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -456,6 +456,13 @@ hundred times:
 Explicit configs: platform, model, `prompt_template` (e.g.
 `{{spec_content}}\n\n{{previous_feedback}}`), `timeout_minutes`. Prompts state
 the goal, expected outputs, constraints, and when to report blocker vs fail.
+
+Placeholders are checked when you write the node, not when a member spawns:
+`{{output:<name>}}` must name a node in the same graph — an ensemble has no
+readable output, so reference its quorum node — and anything the engine cannot
+bind is refused by `graph_add_node`/`graph_update_node` (and by
+`graph_add_ensemble`/`graph_update_ensemble` for the shared prompt and every
+override). Escape a marker meant as literal text as `\{{...}}`.
 
 `prompt_preset` names a preset file instead of carrying text, and export keeps
 only the name — so `graph_import` refuses a document naming a preset this

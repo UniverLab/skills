@@ -55,6 +55,16 @@ a node already burned real work. Each rule below broke a real run.
     the lease is granted, so a queued node is healthy, not stuck. See who
     holds what with the `mutex` tool (action `list`) or
     `canopy mutex list`.
+12. **A prompt template's placeholders are validated when the graph is
+    written.** `{{output:<name>}}` must name a node in the same graph — never
+    an ensemble (an ensemble has no readable output; reference its quorum
+    node) — and every other marker must be one the engine substitutes.
+    `graph_add_node`, `graph_update_node`, `graph_add_ensemble`,
+    `graph_update_ensemble` and `graph_import` refuse anything else before it
+    is stored, naming the owner and the placeholder; escape a marker meant as
+    literal text as `\{{...}}`. A template stored before this check still
+    refuses to spawn, so read `graph_preflight`'s `graph_warnings` before a
+    run instead of discovering it node by node.
 
 Read a failure from the runs table before touching anything: the failing node,
 its iteration count, and its raw output tell you whether the graph, the
