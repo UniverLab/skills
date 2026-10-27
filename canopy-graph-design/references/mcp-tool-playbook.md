@@ -125,6 +125,13 @@ Editing a node's `config` while a graph runs **is** safe: the graph is
 snapshotted per spec, so the change takes effect on the next one. Changing the
 *topology* of a running graph is not.
 
+`graph_add_spec` while a graph runs **is** safe too: bound specs are read
+live at every advance, so a spec bound mid-run joins the running dispatch in
+position order — after the current spec's position in its place, or right
+after the current spec if bound earlier. The run never reports completion
+while a bound spec is still pending: it fails naming the spec in
+`graph_failed`, and `graph_continue` runs it.
+
 ---
 
 ## Mutation Heuristics
@@ -185,6 +192,7 @@ Learned from real incidents; each row was needed at least once.
 | `paused` | `graph_continue` (`retry_current_node` or `skip_next_spec`) |
 | `running` but the daemon restarted (zombie: no child process behind it) | `graph_pause`, then `graph_continue(retry_current_node)`. Do **not** wait for a scheduled autorun: `is_fireable()` excludes `Running`, so it will never fire. A clean stop or crash that killed a node already leaves the graph `paused` with the spec `interrupted`; `graph_continue(retry_current_node)` then re-runs that same node. |
 | `paused` with a blocker from a no-verdict ensemble | Fix the members with `graph_update_ensemble` if they are at fault, then `graph_continue(retry_current_node)`, which re-enters the ensemble without re-running passed nodes. A `graph_run` on a blocked graph is refused. |
+| `failed` with blocker `… cannot complete: N bound spec(s) still pending (…)` | The run finished the work it had, but a spec bound mid-run was left pending — nothing was lost. `graph_continue(retry_current_node)` runs it; no reset needed. |
 | `failed` | `graph_reset` (clears the failed state, keeps completed specs), then `graph_run` for a single clean launch. `graph_reset` with no `specs` resets only non-completed specs, so `graph_run` resumes at the first pending one — nothing already done is re-implemented. To redo only what failed instead, `graph_continue(action="retry_current_node")` is now accepted on a `failed` graph too: it restarts the failed spec at the node it failed on as a directed run (upstream outputs reused) and clears that spec's execution count; `graph_continue(action="skip_next_spec")` skips the failed spec directly. |
 | `completed` | `graph_reset {specs:[…]}` to re-open specific specs, then `graph_run`. |
 | `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
