@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.11"
+  version: "3.12"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -263,7 +263,8 @@ each an ordered list. Each hook is exactly one mode:
   and firing then fails naming the old id). Prefer the name. Use it to
   wake the orchestrating session on `on_failed` / `on_blocked` with `{{node}}`
   and `{{blocker}}`, and on `on_completed` with what to review. A message
-  queued while no TUI runs is delivered when one starts.
+  queued while no TUI runs waits for the next TUI to attach; the target
+  session itself keeps running in the daemon meanwhile.
 - **graph** — `target_graph_id` launches another graph in-process, with a
   `queue_id` or an `idea`. Use it to chain phases (pattern 10: a spec graph
   hands its branch to a spec-less quality graph).
