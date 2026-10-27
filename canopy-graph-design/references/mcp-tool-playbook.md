@@ -39,6 +39,21 @@ call can see (graph-validation rule 10).
   document neither bundles nor finds locally still refuses the whole import,
   naming every unknown preset.
 
+- `graph_validate {path? | document?}` (exactly one) runs every structural
+  check `graph_import` runs plus the sharing rules, with no database and no
+  workdir. Call it on a document you did not author, or are about to hand to
+  someone else, before importing: it reads nothing local, so a green report
+  means the document carries everything its nodes need (`graph_import` can
+  still refuse to overwrite a locally edited preset file of the same name). It
+  refuses a `prompt_preset` that is not bundled in the document or a builtin,
+  and returns every problem found with a JSON path
+  (`nodes[3].config.prompt_preset`) instead of only the first. A single node
+  document (`format_version`, `name`, `kind`, `config`, optional
+  `description`/`preset`) is validated the same way: slug name, authorable kind
+  (`join` refused), known config keys, and no `platform`/`model`/`cli` anywhere
+  in the config — those belong to the installer. The command line equivalent is
+  `canopy graph validate <path> [--json]`.
+
 ### Building by hand (when there is no document yet)
 
 1. `graph_create` — set `trigger` here if the graph should fire on its own (see below); omit it for a manual-only graph

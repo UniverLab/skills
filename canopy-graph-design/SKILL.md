@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.14"
+  version: "3.15"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -442,9 +442,11 @@ hundred times:
 5. **Persist via MCP tools** — prefer **`graph_import`**, which builds the whole
    graph in one call and validates it all-or-nothing; fall back to
    `graph_create` → nodes → edges only when there is no document yet, and
-   `graph_export` the result so the next one is a single call. Then
-   `graph_preflight` before spending a real run. Order, deletes, recovery and
-   the export/import contract in
+   `graph_export` the result so the next one is a single call. Run
+   **`graph_validate`** on any document you did not author, or are about to
+   hand to someone else — it runs import's checks without writing anything.
+   Then `graph_preflight` before spending a real run. Order, deletes, recovery
+   and the export/import contract in
    **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)**.
 6. **Summarize before running** — graph name, specs in order, graph, chosen
    CLIs/models/checks, and what still needs user confirmation. Only call
@@ -475,7 +477,10 @@ nodes and no sidecar files. On import each bundled preset is installed when
 absent locally; an identical local file is a no-op, and a differing one
 refuses the import naming the preset — a locally edited preset is never
 overwritten. A preset the document neither bundles nor finds locally still
-refuses the whole import, naming every unknown preset.
+refuses the whole import, naming every unknown preset. When you hand a document
+to another machine, bundle its presets and run `graph_validate`: it refuses a
+`prompt_preset` that is neither bundled nor builtin, so no node of the shared
+document depends on a preset that happens to be installed here.
 
 ### Check nodes
 
