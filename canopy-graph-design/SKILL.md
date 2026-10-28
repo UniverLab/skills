@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.16"
+  version: "3.17"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -449,7 +449,15 @@ hundred times:
    hand-building: **`graph_install {ref, workdir, ...}`** (CLI
    `canopy graph install <ref>`) fetches it through graphs.univerlab.org —
    which is what counts the install — validates it, installs its bundled
-   presets and imports it as a new graph in one call. Then `graph_preflight`
+   presets and imports it as a new graph in one call. A single reusable node
+   needs neither hand-building nor a full graph document: **`node_install
+   {ref}`** (CLI `canopy node install <ref>`) fetches the node document
+   through the same catalogue and ref grammar, then `graph_add_node
+   {node: "<name>", config_overrides: ...}` (or `graph_add_ensemble
+   {node: "ensemble-proposers", members: [...]}` for the builtin ensemble,
+   whose members still need a platform each) instantiates it — an agent
+   node document carries no harness, so the overrides must supply
+   `platform` (or `cli`/`crew`). Then `graph_preflight`
    before spending a real run. Order, deletes, recovery and the
    export/import contract in
    **[references/mcp-tool-playbook.md](references/mcp-tool-playbook.md)**.

@@ -74,6 +74,28 @@ call can see (graph-validation rule 10).
   [--overwrite-presets] [--json]` (workdir defaults to the current
   directory).
 
+- `node_install {ref, overwrite_presets?}` installs one shareable node
+  document published in the same catalogue (`graphs.catalogue_url`) — `ref`
+  is `<slug>` or `<owner>/<repo>/<slug>`, each with an optional `@<ref>`
+  suffix. It validates exactly as `graph_validate` would (a graph document
+  is refused), installs the bundled `preset` into `<canopy_dir>/prompts/`
+  with the same no-silent-overwrite rule as a graph install, and writes
+  `~/.canopy/nodes/<name>.json`, where it shadows a builtin of the same
+  name. `node_list` shows installed copies and the builtins embedded in the
+  binary (`implementer`, `cargo-gates`, `reviewer-committer`,
+  `commit-check`, `resilience`, `ensemble-proposers`), each marked
+  `installed` or `builtin`; `node_remove {name}` deletes an installed copy
+  (a builtin with no override is refused). `graph_add_node {node:
+  "<name>", config_overrides: ...}` is the alternative to `kind` + `config`
+  (shallow merge, overrides win); an agent node document carries no harness,
+  so the overrides must supply `platform` (or `cli`/`crew`) or the call is
+  refused naming the document. `graph_add_ensemble {node:
+  "ensemble-proposers", members: [...]}` supplies the shared prompt, member
+  count and ensemble shape from the document, but every member still needs
+  its own platform. The command line equivalents are `canopy node list
+  [--json]`, `canopy node install <ref> [--overwrite-presets] [--json]`,
+  and `canopy node remove <name> [--json]` (all local, no daemon).
+
 ### Building by hand (when there is no document yet)
 
 1. `graph_create` — set `trigger` here if the graph should fire on its own (see below); omit it for a manual-only graph
