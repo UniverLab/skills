@@ -351,14 +351,22 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   spec at that node: `graph_continue run_from_node` (with `spec`), or
   `graph_run` with `start_node_id` for the first spec. It reuses the recorded
   output of every earlier node and refuses, naming the node, when a reachable
-  prompt or check needs output that was never recorded. On an idea-driven
+  prompt or check needs output that was never recorded, or when an upstream
+  node's latest run failed. An ensemble member is the exception: it is judged
+  by the ensemble's quorum — its join node's run for the spec — so a member
+  that failed while the quorum passed is a satisfied prerequisite, and a
+  failed quorum refuses the run and names the join. On an idea-driven
   graph (run with an `idea`, no bound specs) the same calls resume the stored
   idea run — `{{spec_content}}` renders the idea the graph last ran with and
   no spec needs naming; an idea graph that has never run is refused, naming
   `graph_run` with an `idea` as the way to start one.
-- A spec that ends `Failed` or `Interrupted` with a dirty tree blocks the next
-  spec on that workdir. `graph_run` refuses, and names the blocking spec. Finish,
-  reset or remove that spec, or set `allow_dirty_start`.
+- A spec that ends `Failed` or `Interrupted` blocks the next spec on that
+  workdir only when its recorded dirty paths overlap the ones dirty now;
+  `Skipped` specs never block, and a record naming files no longer dirty never
+  blocks. A spec resuming exactly the dirt its own latest run recorded (the
+  restart-recovery case) proceeds without `allow_dirty_start`. Otherwise
+  `graph_run` refuses and names the blocking spec: finish, reset or remove
+  that spec, or set `allow_dirty_start`.
 - **Sandboxed runs.** `graph_run` with `sandbox` runs the graph in a temporary
   git worktree on a `canopy/sandbox-*` branch instead of the operator's
   checkout. A completed run removes it only when the branch holds no unique
