@@ -65,25 +65,25 @@ canopy-graph-design/
 
 Creation flow:
 
-- `graph_create`
-- `graph_add_spec`
-- `graph_add_node`
-- `graph_add_edge`
-- `graph_get`
+- `graph_edit` `create`
+- `graph_edit` `attach_spec`
+- `graph_node` `add`
+- `graph_edge` `add`
+- `graph` `get`
 
 Refinement flow:
 
-- `graph_list`
-- `graph_get`
-- extend with `graph_add_spec`, `graph_add_node`, or `graph_add_edge` when the change is append-only
+- `graph` `list`
+- `graph` `get`
+- extend with `graph_edit` `attach_spec`, `graph_node` `add`, or `graph_edge` `add` when the change is append-only
 - recreate as a new graph when the shape must change in ways the toolset cannot mutate directly
 
 Execution flow:
 
-- `graph_run`
-- `graph_pause`
-- `graph_continue`
-- `graph_schedule_autorun` — resume a graph once, at an exact time (no polling)
+- `graph_control` `run`
+- `graph_control` `pause`
+- `graph_control` `continue`
+- `graph_control` `schedule_autorun` — resume a graph once, at an exact time (no polling)
 - `agent_schedule_enable` — re-enable a background agent once, at an exact time
 
 ---
@@ -109,7 +109,7 @@ skills:
 ## References
 
 - **graph-patterns.md** — examples of reusable graph shapes + field notes from real failures
-- **graph-validation.md** — the pre-`graph_run` checklist (nine fatal shapes)
+- **graph-validation.md** — the pre-run checklist (nine fatal shapes)
 - **mcp-tool-playbook.md** — recommended create/extend/replace flow with the current MCP toolset
 
 ---

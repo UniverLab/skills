@@ -9,10 +9,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.1"
+  version: "1.2"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-14"
+  last_updated: "2026-10-28"
 ---
 
 # Graph Reviewer: Audit Before It Costs
@@ -30,14 +30,14 @@ deliverable is a report.
 ## What You Are Given
 
 A graph id, and usually a queue id. Read them through the MCP surface:
-`graph_get` for the graph, `queue_list` and `spec_list` for the work. Large
+`graph` `get` for the graph, `queue_list` and `spec_list` for the work. Large
 results are saved to a file whose path the tool returns — read that file in
 chunks until you have all of it.
 
 **Never read the SQLite database directly.** If the surface cannot answer
 something, that is itself a finding: report the missing capability instead of
-working around it. The run's recorded history is in `graph_events` and
-`graph_node_runs_list`; read those rather than inferring it.
+working around it. The run's recorded history is in `graph` `events` and
+`graph` `node_runs`; read those rather than inferring it.
 
 ---
 
@@ -63,7 +63,7 @@ Structural defects are cheap to find and expensive to hit.
   `round_robin` has 2–16. A `crew` binding must name an existing crew. Check
   that the members are not all on one platform: they share a quota and die
   together.
-- **Nothing is dispatched to an unavailable pair.** `graph_preflight` lists
+- **Nothing is dispatched to an unavailable pair.** `graph_control` `preflight` lists
   roster-unavailable members under `skipped_unavailable`. An ensemble the
   roster leaves too small to run is reported as `would_fail`. Both are findings
   before the run, not surprises during it.
@@ -72,7 +72,7 @@ Structural defects are cheap to find and expensive to hit.
   runs. Use `"$CANOPY_SPEC_FILE"` for the spec text.
 - **Hooks are as written.** An interactive hook has exactly one of
   `target_session_id` or `target_session_name`. A command hook does not start a
-  canopy binary, and it does not keep a run log that `graph_events` already
+  canopy binary, and it does not keep a run log that `graph` `events` already
   records.
 
 ---
@@ -177,7 +177,7 @@ This is where graphs actually fail, and the part most reviews skip.
   failure. Treating it as one sends the work straight back into the same wall.
 - **Does a stop have a route?** A daemon stop finalizes the killed node as
   `interrupted`, and an ensemble with no verdict pauses with a blocker. Neither
-  takes a fail edge. Check that the graph's recovery plan is `graph_continue`
+  takes a fail edge. Check that the graph's recovery plan is `graph_control` `continue`
   (retry, or a directed run) and not an edge that was never going to fire.
 
 ---

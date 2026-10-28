@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.3"
+  version: "1.4"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-10-27"
+  last_updated: "2026-10-28"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -33,7 +33,7 @@ verify the live surface (below) before promising an exact call.
 - `get_tools(scope="session_start")` — the workspace brief + which MCP tools apply right now.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
 - `agent_models` — which CLI platforms and models this machine can actually run.
-- `node_list` — installed and builtin shareable nodes for building graphs (`graph_add_node`/`graph_add_ensemble` with `node:`); `blueprint_list` still lists the legacy blueprints.
+- `node_list` — installed and builtin shareable nodes for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `blueprint_list` still lists the legacy blueprints.
 
 If this skill and the live surface disagree, the live surface wins.
 
