@@ -54,32 +54,47 @@ call can see (graph-validation rule 10).
   in the config — those belong to the installer. The command line equivalent is
   `canopy graph validate <path> [--json]`.
 
-- `graph_install {ref, workdir, name?, overwrite_presets?}` installs a graph
-  published in the catalogue (base `https://graphs.univerlab.org`, the
+- `graph_install {ref, workdir, name?, overwrite_presets?, accept?}` installs a
+  graph published in the catalogue (base `https://graphs.univerlab.org`, the
   `graphs.catalogue_url` setting) in one call. `ref` is `<slug>` for an
   official graph or `<owner>/<repo>/<slug>` for a community one, each with an
   optional `@<ref>` version suffix; anything else is refused with the accepted
   forms. It makes exactly one GET through the catalogue — that request is what
   counts the install, and there is no other network traffic — then runs the
-  same validation as `graph_validate` (every problem listed, nothing written),
+  same validation as `graph_validate` (every problem listed, nothing written).
+  Without `accept: true` it stops there: it writes nothing and returns
+  `{needs_review: true, review}` where `review` is `{name, source, commands,
+  prompts, attention}` — every shell command labelled by node or hook, every
+  prompt with its first 3 lines and total line count, and the attention marks
+  for dangerous shapes (pipe to shell, sudo, rm -rf, chmod 777, git push/--force,
+  sensitive-path write, eval, base64 -d, pipe to python/node). **Show that
+  review to your user and only then call again with `accept: true`** — official
+  documents are never exempt, and a document the catalogue removed after a
+  community report is refused with the reason and issue. With `accept: true` it
   installs the bundled presets with `graph_import`'s refusal rule, and imports
   through the same all-or-nothing path: always a new graph, a numeric suffix
   when the name is taken. `workdir` must be absolute and exist; `name`
   overrides the document's name. A local preset file whose content differs
   refuses the whole install naming the file unless `overwrite_presets: true`.
-  The response carries the new graph id and name, the workdir, the presets
-  written, and the agent nodes still without a platform/model together with
-  the next command to assign them. The command line equivalent is
+  The response carries the same review plus the new graph id and name, the
+  workdir, the presets written, and the agent nodes still without a
+  platform/model together with the next command to assign them. The command
+  line equivalent is
   `canopy graph install <ref> [--workdir <dir>] [--name <name>]
-  [--overwrite-presets] [--json]` (workdir defaults to the current
-  directory).
+  [--overwrite-presets] [--yes] [--show-prompts] [--json]` (workdir defaults to
+  the current directory); the CLI prints the same review, then asks
+  `Install <name> from <source>? [y/N]`, refuses without a TTY unless `--yes`,
+  and never skips the review.
 
-- `node_install {ref, overwrite_presets?}` installs one shareable node
+- `node_install {ref, overwrite_presets?, accept?}` installs one shareable node
   document published in the same catalogue (`graphs.catalogue_url`) — `ref`
   is `<slug>` or `<owner>/<repo>/<slug>`, each with an optional `@<ref>`
   suffix. It validates exactly as `graph_validate` would (a graph document
-  is refused), installs the bundled `preset` into `<canopy_dir>/prompts/`
-  with the same no-silent-overwrite rule as a graph install, and writes
+  is refused), and follows the same `accept` gate as `graph_install`: without
+  `accept: true` nothing is written and the review is returned for you to show
+  your user; with it, the bundled `preset` goes into `<canopy_dir>/prompts/`
+  with the same no-silent-overwrite rule as a graph install, and the document
+  is written to
   `~/.canopy/nodes/<name>.json`, where it shadows a builtin of the same
   name. `node_list` shows installed copies and the builtins embedded in the
   binary (`implementer`, `cargo-gates`, `reviewer-committer`,
@@ -93,8 +108,9 @@ call can see (graph-validation rule 10).
   "ensemble-proposers", members: [...]}` supplies the shared prompt, member
   count and ensemble shape from the document, but every member still needs
   its own platform. The command line equivalents are `canopy node list
-  [--json]`, `canopy node install <ref> [--overwrite-presets] [--json]`,
-  and `canopy node remove <name> [--json]` (all local, no daemon).
+  [--json]`, `canopy node install <ref> [--overwrite-presets] [--yes]
+  [--show-prompts] [--json]`, and `canopy node remove <name> [--json]` (all
+  local, no daemon).
 
 ### Building by hand (when there is no document yet)
 

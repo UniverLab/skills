@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.17"
+  version: "3.18"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-27"
@@ -449,10 +449,16 @@ hundred times:
    hand-building: **`graph_install {ref, workdir, ...}`** (CLI
    `canopy graph install <ref>`) fetches it through graphs.univerlab.org —
    which is what counts the install — validates it, installs its bundled
-   presets and imports it as a new graph in one call. A single reusable node
-   needs neither hand-building nor a full graph document: **`node_install
-   {ref}`** (CLI `canopy node install <ref>`) fetches the node document
-   through the same catalogue and ref grammar, then `graph_add_node
+   presets and imports it as a new graph in one call. It writes nothing on
+   the first call: without **`accept: true`** it returns `{needs_review:
+   true, review}` — every shell command the document runs, every prompt's
+   first 3 lines and line count, and the attention marks for dangerous
+   shapes — so show that review to your user, then call again with `accept:
+   true` (official documents included; never auto-accept). A single reusable
+   node needs neither hand-building nor a full graph document:
+   **`node_install {ref}`** (CLI `canopy node install <ref>`) fetches the node
+   document through the same catalogue and ref grammar, under the same
+   `accept` gate, then `graph_add_node
    {node: "<name>", config_overrides: ...}` (or `graph_add_ensemble
    {node: "ensemble-proposers", members: [...]}` for the builtin ensemble,
    whose members still need a platform each) instantiates it — an agent
