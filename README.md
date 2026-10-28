@@ -58,8 +58,10 @@ The Project Intelligence Layer: pull workspace context at session start,
 persist facts/patterns/summaries with `intelligence_upsert`.
 
 ### canopy-sync
-The action-driven workspace protocol: classify actions by risk and follow the
-declare → execute → report sequence.
+Workspace coordination with the retired sync protocol's replacements:
+`session_list`, `scheduled_send_create`, and `intelligence_upsert` /
+`intelligence_search` — what to do instead of declaring, broadcasting, and
+reporting status.
 
 ### canopy-capabilities
 Orientation map for "what can I do here?": capabilities, starter automation

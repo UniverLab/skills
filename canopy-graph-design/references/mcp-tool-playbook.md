@@ -83,7 +83,7 @@ call can see (graph-validation rule 10).
   `Install <name> from <source>? [y/N]`, refuses without a TTY unless `--yes`,
   and never skips the review.
 
-- `node_install {ref, overwrite_presets?, accept?}` installs one shareable node
+- `node` `install {ref, overwrite_presets?, accept?}` installs one shareable node
   document published in the same catalogue (`graphs.catalogue_url`) — `ref`
   is `<slug>` or `<owner>/<repo>/<slug>`, each with an optional `@<ref>`
   suffix. It validates exactly as `graph` `validate` would (a graph document
@@ -93,10 +93,10 @@ call can see (graph-validation rule 10).
   with the same no-silent-overwrite rule as a graph install, and the document
   is written to
   `~/.canopy/nodes/<name>.json`, where it shadows a builtin of the same
-  name. `node_list` shows installed copies and the builtins embedded in the
+  name. `node` `list` shows installed copies and the builtins embedded in the
   binary (`implementer`, `cargo-gates`, `reviewer-committer`,
   `commit-check`, `resilience`, `ensemble-proposers`), each marked
-  `installed` or `builtin`; `node_remove {name}` deletes an installed copy
+  `installed` or `builtin`; `node` `remove {name}` deletes an installed copy
   (a builtin with no override is refused). `graph_node {action: "add", node:
   "<name>", config_overrides: ...}` is the alternative to `kind` + `config`
   (shallow merge, overrides win); an agent node document carries no harness,

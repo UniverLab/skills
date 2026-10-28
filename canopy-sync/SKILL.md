@@ -3,76 +3,99 @@ name: canopy-sync
 description: >
   Use this skill when the Canopy MCP server is available and you are about to
   act on a shared workspace: writing files, running builds or tests,
-  installing dependencies, or committing. It defines the action-driven sync
-  protocol (sync_get_context, sync_declare_intent, sync_broadcast,
-  sync_report_status) that keeps solo history clean and multi-agent work
-  conflict-free.
+  installing dependencies, or committing. The old multi-agent sync protocol is
+  retired; this skill covers what replaced it: session_list,
+  scheduled_send_create, and intelligence_upsert/search.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.0"
+  version: "2.0"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-07-14"
+  last_updated: "2026-10-28"
 ---
 
-# Canopy Sync: Action-Driven Workspace Protocol
+# Canopy Coordination: Sessions and Memory, Not Sync
 
-Sync is not a "multi-agent only" feature. It's a workspace state protocol you
-follow based on **what action you're about to take**, not how many agents are
-present. Solo agents build history; multi-agent setups get real-time
-coordination.
+The multi-agent sync protocol is retired. Mission declaration, workspace
+status, broadcast channels and their four MCP tools no longer exist — calling
+them fails. What remains is durable: past missions and chatter stay in the
+database, `intelligence_get_context` surfaces them, and the person's TUI
+renders them.
 
-This is a **tooling skill**: it only applies when the Canopy sync tools are
+Coordination is not a "multi-agent only" feature. Solo sessions still leave
+history; parallel sessions still need to find each other and each other's
+findings.
+
+This is a **tooling skill**: it only applies when the Canopy tools are
 present. Behavior rules live in `execution-mindset`.
 
 ---
 
-## Action Protocol
+## What replaced the sync tools
 
-Before any action, check its risk level and follow the corresponding protocol:
+| You used to | Do this now |
+|---|---|
+| See who else is working | `session_list` — every live session with its id, workdir, name and whether a TUI is attached |
+| Tell another agent to act later | `scheduled_send_create` — schedule a prompt for a session instead of polling it |
+| Broadcast a milestone or status | `intelligence_upsert` a fact/session summary, so every future session reads it |
+| Read others' declarations | `intelligence_get_context` at session start, `intelligence_search` for a specific topic |
+
+There is no live broadcast and no mission lifecycle to open or close. Never
+invent a `sync_*` call, and never wait for a peer's acknowledgement.
+
+---
+
+## Coordination protocol by action
 
 | Action type | Risk | Protocol |
 |---|---|---|
 | Read files, search, analyze | `low` | Execute directly |
-| Run tests, builds, linters | `medium` | `sync_broadcast` before + broadcast result |
-| Write files, modify code | `high` | `sync_get_context` → check conflicts → `sync_declare_intent` → execute → `sync_report_status` |
-| Install deps, schema changes, commits | `breaking` | Same as `high` + `impact="breaking"` in declare_intent |
+| Run tests, builds, linters | `medium` | Execute; `intelligence_upsert` the outcome if it is worth keeping |
+| Write files, modify code | `high` | `intelligence_get_context` for known constraints → check `session_list` for a session in the same workdir → execute → `intelligence_upsert` what changed |
+| Install deps, schema changes, commits | `breaking` | Same as `high`, and say it plainly in the upsert so the next session sees the migration/commit constraint |
+
+Two sessions in the same workdir at once is a conflict risk you manage, not
+one the daemon prevents: check `session_list` before a long write, and prefer
+the session a change is already assigned to.
 
 ### get_tools — your action guide
 
 `get_tools(scope)` returns the right tools + protocol for any situation:
 
 - `get_tools(scope="session_start")` — what to do first
-- `get_tools(scope="file_write", path="...")` — check conflicts before modifying
-- `get_tools(scope="test_run")` — coordinate test execution
-- `get_tools(scope="close_session")` — wrap up properly
-- `get_tools(scope="multi_agent")` — full sync toolkit
+- `get_tools(scope="file_write", path="...")` — what applies before modifying
+- `get_tools(scope="test_run")` — verification guidance
+- `get_tools(scope="close_session")` — wrap up properly (this is where the
+  session summary is written)
+- `get_tools(scope="multi_agent")` — the coordination toolkit
 
 ---
 
 ## Core Rules
 
-1. **Protocol by action, not by count.** Don't check `participant_count` to
-   decide whether to sync — the history matters even when you're alone.
-2. **Non-blocking.** All sync operations complete immediately. Never wait for
-   responses; act on last-known state.
-3. **Communicate intent, not implementation.** Missions explain *what* and
+1. **Protocol by action, not by count.** The history matters even when you're
+   alone.
+2. **Non-blocking.** Nothing you call waits for a peer. Act on last-known
+   state.
+3. **Communicate intent, not implementation.** Upserts explain *what* and
    *why*, not *how*.
-4. **The daemon closes missions on exit.** You don't need to self-report
-   closure — call `sync_report_status("stable", "Mission complete: ...")` when
-   done for clean history.
+4. **Close the session with a summary.** `get_tools(scope="close_session")`
+   tells you to `intelligence_upsert` the session summary — that is the
+   replacement for the old report-status step.
 
 ---
 
 ## Anti-patterns
 
-❌ Skipping sync because you think you're alone — you don't know who reads this history next session
-✅ Follow the action protocol: declare, execute, report. Always.
+❌ Calling a retired `sync_*` tool, or a hand-rolled broadcast
+✅ `session_list` + `intelligence_upsert` / `intelligence_search`
 
-❌ Excessive broadcasting — dumping every commit message or intermediate step
-✅ Broadcast milestones: "Completed auth refactor, all tests passing"
+❌ Skipping the upsert because you think you're alone — you don't know who
+reads this history next session
+✅ Follow the action protocol: read context, act, persist what changed
 
-❌ Fine-grained missions — declaring a mission for every file edit
-✅ Coarse missions: "Refactoring database layer" covers all related edits
+❌ Fine-grained upserts for every file edit
+✅ Coarse, durable entries: "Refactoring database layer, migration 12 drops
+the retired tables"

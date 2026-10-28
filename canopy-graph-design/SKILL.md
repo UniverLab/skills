@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.20"
+  version: "3.21"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -472,7 +472,7 @@ hundred times:
    rather than retrying — and nobody reviewed it, so the review you show is
    the user's only check. A single reusable node needs neither hand-building
    nor a full graph document:
-   **`node_install {ref}`** (CLI `canopy node install <ref>`) fetches the node
+   **`node` `install {ref}`** (CLI `canopy node install <ref>`) fetches the node
    document through the same catalogue and ref grammar, under the same
    `accept` gate, then `graph_node
    {action: "add", node: "<name>", config_overrides: ...}` (or `graph_ensemble

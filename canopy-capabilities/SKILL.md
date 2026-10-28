@@ -3,13 +3,13 @@ name: canopy-capabilities
 description: >
   Use this skill when someone asks what Canopy can do: onboarding a new user,
   answering "what can I do here?", proposing automations for a workspace, or
-  deciding whether a need maps to an agent, a graph, memory, or sync. It gives
+  deciding whether a need maps to an agent, a graph, memory, or a session. It gives
   the capability map plus concrete starter ideas, and teaches how to discover
   the live tool surface instead of trusting a static list.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.5"
+  version: "1.6"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
@@ -33,7 +33,7 @@ verify the live surface (below) before promising an exact call.
 - `get_tools(scope="session_start")` — the workspace brief + which MCP tools apply right now.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
 - `harness` `models` — which CLI platforms and models this machine can actually run.
-- `node_list` — installed and builtin shareable nodes for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `blueprint_list` still lists the legacy blueprints.
+- `node` `list` — installed and builtin shareable node documents for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `node` `get` inspects one document.
 
 If this skill and the live surface disagree, the live surface wins.
 
@@ -62,10 +62,12 @@ Runs unattended, survives restarts, schedules its own resumption after CLI
 quota resets. This is the heavy hitter: backlogs of bugfixes, refactors,
 docs, or migrations executed overnight. (Design guidance: `canopy-graph-design`.)
 
-### 4. Multi-agent sync
-Agents declare missions, report status, and broadcast milestones so parallel
-sessions stop colliding in one workspace — and solo sessions leave a legible
-history. (Details: `canopy-sync`.)
+### 4. Session coordination
+The sync protocol is retired. Parallel sessions coordinate through
+`session_list` (every live session with its id and workdir),
+`scheduled_send_create` (wake a session later instead of polling), and
+`intelligence_upsert` / `intelligence_search` (persist and find shared
+findings) — so solo sessions still leave a legible history.
 
 ### 5. Interactive session management (TUI)
 Live terminals for interactive agents, status semaphores, a prompt builder
@@ -94,7 +96,7 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "I keep re-explaining my codebase" | Intelligence layer (facts/patterns) |
 | "Run X every night / when Y changes" | Background agent (cron / watch) |
 | "Work through this backlog without me" | Specs + queue + graph |
-| "Two agents keep stepping on each other" | Sync protocol |
+| "Two agents keep stepping on each other" | `session_list` to see them, `intelligence_upsert` to share findings |
 | "Ask questions over these papers/docs" | RAG |
 | "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `delivery_action: send_to_session` |
 | "The agent made a screenshot/chart and I can't find it" | Session shelf: `session_send_file`, then the TUI's F1 → Shelf tab |

@@ -25,9 +25,10 @@ same short list of targets.
 5. **The resolution model** — model → first divergence → evidence → smallest decisive move → anomalies → broken contract → second-order effects → close the loop.
 6. **Verify before reporting** and **tokens**.
 
-This skill is pure behavior: Canopy-specific tooling (intelligence layer, sync
-protocol) was extracted in v5.0 to [canopy-intelligence](../canopy-intelligence/)
-and [canopy-sync](../canopy-sync/). Role behavior stacks on top:
+This skill is pure behavior: Canopy-specific tooling (intelligence layer,
+session coordination) was extracted in v5.0 to
+[canopy-intelligence](../canopy-intelligence/) and
+[canopy-sync](../canopy-sync/). Role behavior stacks on top:
 [architect-mindset](../architect-mindset/) for design,
 [code-engineering](../code-engineering/) for code.
 
