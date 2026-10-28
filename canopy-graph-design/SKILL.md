@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.21"
+  version: "3.22"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -374,9 +374,11 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   commits and the worktree has no uncommitted files; a **failed run always
   keeps it**, so `graph_control` `continue` resumes inside that worktree (a resume whose
   worktree is gone is refused, naming the sandbox id — it never falls back to
-  the original workdir). A failed sandbox is the operator's to land or discard:
-  say so and point at `canopy sandbox list`, never relaunch a fresh run over
-  the same work.
+  the original workdir). Land or discard a leftover sandbox through the
+  `sandbox` MCP tool — `list`/`get` to inspect (`graph` `get` reports the
+  graph's newest sandbox as `{id, status}`), then `land` or `discard`
+  (`discard` needs `force: true` to delete unique commits) — never with a
+  raw `git merge`, and never relaunch a fresh run over the same work.
 
 ### 6b. Who supervises the graph — the recovery hierarchy
 
