@@ -84,7 +84,7 @@ Execution flow:
 - `graph_control` `pause`
 - `graph_control` `continue`
 - `graph_control` `schedule_autorun` — resume a graph once, at an exact time (no polling)
-- `agent_schedule_enable` — re-enable a background agent once, at an exact time
+- `agent_edit` `schedule` — re-enable a background agent once, at an exact time
 
 ---
 

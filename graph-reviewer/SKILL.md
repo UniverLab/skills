@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.2"
+  version: "1.3"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -30,7 +30,7 @@ deliverable is a report.
 ## What You Are Given
 
 A graph id, and usually a queue id. Read them through the MCP surface:
-`graph` `get` for the graph, `queue_list` and `spec_list` for the work. Large
+`graph` `get` for the graph, `queue` `list` and `spec` `list` for the work. Large
 results are saved to a file whose path the tool returns — read that file in
 chunks until you have all of it.
 
@@ -153,7 +153,7 @@ This is where graphs actually fail, and the part most reviews skip.
 - **Is context that must survive several hops carried by something durable?**
   If feedback only reaches the next node, anything the graph needs three hops
   later has to live in a file, in a spec note, or be re-derived. A spec note
-  written with `spec_note_write` reaches every later agent node of the spec in
+  written with `spec_edit` `note_write` reaches every later agent node of the spec in
   its `[SPEC NOTES]` section. Check that whatever the design assumes is
   actually available where it is read.
 - **Are the destructive prohibitions present** where they matter — no

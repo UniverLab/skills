@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.4"
+  version: "1.5"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
@@ -32,7 +32,7 @@ verify the live surface (below) before promising an exact call.
 
 - `get_tools(scope="session_start")` — the workspace brief + which MCP tools apply right now.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
-- `agent_models` — which CLI platforms and models this machine can actually run.
+- `harness` `models` — which CLI platforms and models this machine can actually run.
 - `node_list` — installed and builtin shareable nodes for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `blueprint_list` still lists the legacy blueprints.
 
 If this skill and the live surface disagree, the live surface wins.
@@ -49,7 +49,7 @@ already know?" before re-deriving anything. (Details: `canopy-intelligence`.)
 ### 2. Background agents (cron / file-watch)
 Any prompt can run on a schedule or fire when files change — on any installed
 CLI platform. An agent can also deliver its prompt into a live interactive
-session (`action: send_to_session`, targeted by session name) instead of
+session (`delivery_action: send_to_session`, targeted by session name) instead of
 spawning a headless CLI; use it when the work belongs in a session someone is
 already watching. Starter ideas: nightly dependency audit, docs drift checker,
 "summarize what changed today", data-pipeline sanity checks on file arrival,
@@ -96,10 +96,10 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "Work through this backlog without me" | Specs + queue + graph |
 | "Two agents keep stepping on each other" | Sync protocol |
 | "Ask questions over these papers/docs" | RAG |
-| "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `action: send_to_session` |
+| "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `delivery_action: send_to_session` |
 | "The agent made a screenshot/chart and I can't find it" | Session shelf: `session_send_file`, then the TUI's F1 → Shelf tab |
-| "Which harness/model does each graph use?" | `graph_crew` (no prompt text returned) |
-| "Don't use that model/provider right now" | Availability roster (`roster_set`) |
+| "Which harness/model does each graph use?" | `crew` `assignments` (no prompt text returned) |
+| "Don't use that model/provider right now" | Availability roster (`harness` `roster_set`) |
 
 When proposing, be concrete: name the trigger, the platform, the verification
 step, and what "done" looks like. An automation without a deterministic check

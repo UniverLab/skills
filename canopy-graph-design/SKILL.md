@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.19"
+  version: "3.20"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -66,7 +66,7 @@ recommend switching for the authoring step.
 
 Every spec must be executable by a colder, cheaper context than its author.
 A spec that assumes the reader knows the conversation is a spec that will
-diverge. `spec_create` takes one `<spec>` document with seven tagged sections;
+diverge. `spec_edit` `create` takes one `<spec>` document with seven tagged sections;
 three are required:
 
 | Section | Carries |
@@ -118,7 +118,7 @@ Rules of thumb:
 By default every spec in a queue runs from a **cold** harness session — the
 implementer re-analyzes the repo from scratch. Specs that build on each other
 can instead share **one warm session**: the `group` argument on
-`queue_add_spec` tags members into a named group, and a grouped spec resumes
+`queue` `add_spec` tags members into a named group, and a grouped spec resumes
 the session captured by the previous **successfully-completed** sibling in that
 group instead of starting cold. That carries the earlier spec's mental model
 (files already read, decisions already made) forward into the next.
@@ -139,10 +139,10 @@ justify. Separate bugs and unrelated areas stay ungrouped and cold.
   context worth inheriting.
 - Grouping is a property of queue membership, not of the spec: the same spec
   can be ungrouped in one queue and grouped in another. Set it when adding
-  (`queue_add_spec` with `group`; a grouped add lands after the group's last
-  pending member), or change it in place with `queue_set_group` (or
-  `canopy queue group`). `queue_set_group` moves the member next to its group.
-- A group's pending members must stay contiguous. `queue_reorder` refuses an
+  (`queue` `add_spec` with `group`; a grouped add lands after the group's last
+  pending member), or change it in place with `queue` `set_group` (or
+  `canopy queue group`). `queue` `set_group` moves the member next to its group.
+- A group's pending members must stay contiguous. `queue` `reorder` refuses an
   order that would split a group and changes nothing; reorder around the group
   instead.
 
@@ -172,13 +172,14 @@ Design the chain short, or give it durable ground to stand on. See
 
 **Spec notes are the shared working memory.** Every spec carries one note per
 owner (per node, or per ensemble when the writer is a member). A node records
-its plan, decisions or open questions with `spec_note_write(run_id, body)`
+its plan, decisions or open questions with `spec_edit` `note_write`
+(`run_id`, `body`)
 (body at most 2 500 characters). Every later agent node of the same spec
 receives the notes in a `[SPEC NOTES]` section (5 000-character budget, never
 truncated mid-note), so a Designer's plan reaches the implementer without a
 temp file. Notes survive bounces, resumes and `graph_control` `continue`.
 `graph_control` `reset` keeps them unless `clear_notes: true`. Read a spec's notes with
-`spec_notes_get` or `canopy spec notes <spec-id>`.
+`spec` `notes` or `canopy spec notes <spec-id>`.
 
 ---
 
@@ -227,17 +228,17 @@ Rules:
   `cascade` or `round_robin` takes 2–16 (`graphs.ensemble_max_members_sequential`,
   up to 32). Do not assume the old fixed 8.
 - **Bind a crew instead of copying members.** A crew is a named, ordered member
-  list (`crew_create`). An ensemble or node binds it with `crew: "name"` (the
+  list (`crew` `create`). An ensemble or node binds it with `crew: "name"` (the
   node config, or `graph_ensemble` `add`/`graph_ensemble` `update`), so a role's
-  members are written once. `crew_update` reaches every bound ensemble at its
-  next dispatch. `crew_delete` is refused while anything binds the crew. Use
-  `graph_crew` to see every harness/model a graph uses, with no prompt text.
+  members are written once. `crew` `update` reaches every bound ensemble at its
+  next dispatch. `crew` `delete` is refused while anything binds the crew. Use
+  `crew` `assignments` to see every harness/model a graph uses, with no prompt text.
 - **Unavailable members are skipped, not edited.** Declare a platform or model
-  out with `roster_set` (optionally `until`). Dispatch then skips it: a parallel
+  out with `harness` `roster_set` (optionally `until`). Dispatch then skips it: a parallel
   quorum counts only the available members, cascade falls through, and
   round_robin steps over it. An ensemble with too few members left blocks the
   spec, with a blocker that names the pair. It does not burn an attempt. Clear
-  the entry with `roster_clear`. `graph_control` `preflight` never probes an unavailable
+  the entry with `harness` `roster_clear`. `graph_control` `preflight` never probes an unavailable
   pair.
 
 ---

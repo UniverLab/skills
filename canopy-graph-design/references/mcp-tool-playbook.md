@@ -116,14 +116,14 @@ call can see (graph-validation rule 10).
 3. `graph_edge` `add` for routing
 4. `graph` `get` to verify the final shape against `references/graph-validation.md`
 5. `graph` `export` it once it works, so the next one is a single call
-6. `graph_control` `preflight` with `{graph_id}` — probes every distinct platform+model the graph references, before a real run spends anything on a harness that cannot answer. Confirm a `broken` verdict with `agent_probe {platform, model}` on its own before rewiring anything: a pair preflight calls broken can answer fine when probed alone.
+6. `graph_control` `preflight` with `{graph_id}` — probes every distinct platform+model the graph references, before a real run spends anything on a harness that cannot answer. Confirm a `broken` verdict with `harness` `probe` (`{platform, model}`) on its own before rewiring anything: a pair preflight calls broken can answer fine when probed alone.
 7. summarize the graph to the user
 8. `graph_control` `run` only after explicit approval or direct instruction — not needed at all if a cron/watch trigger will fire it
 
 Specs are **not** part of the graph any more: they live in the standalone
-backlog (`spec_create`) and reach the graph through a queue — see the Queues
+backlog (`spec_edit` `create`) and reach the graph through a queue — see the Queues
 section below. `graph_edit` `attach_spec` binds a spec to the graph itself and is the older
-shape; prefer `spec_create` + `queue_*`.
+shape; prefer `spec_edit` `create` + `queue`.
 
 ---
 
@@ -249,7 +249,7 @@ while a bound spec is still pending: it fails naming the spec in
 | Start a spec at a chosen node (directed run) | `graph_control` `continue` with `mode: run_from_node` (`node_id`, optional `spec_id`); the first spec of a `graph_control` `run` can use `start_node_id` instead. Reuses earlier nodes' recorded output; refused while the graph has an active run |
 | Re-open a failed/completed graph | `graph_control` `reset` (optionally `{specs:[…]}`; a named spec's execution count is zeroed, a reset without `specs` keeps it), then `graph_control` `run` |
 | Resume once at an exact future time | `graph_control` `schedule_autorun` with `{graph_id, at}` |
-| Re-enable an agent once at an exact time | `agent_schedule_enable(id, at)` |
+| Re-enable an agent once at an exact time | `agent_edit` `schedule` with `(id, at)` |
 | Node reports success/failure | `graph_complete_node` |
 | Node blocked, needs human | `graph_report_blocker` |
 
@@ -268,7 +268,7 @@ Learned from real incidents; each row was needed at least once.
 | `failed` with blocker `… cannot complete: N bound spec(s) still pending (…)` | The run finished the work it had, but a spec bound mid-run was left pending — nothing was lost. `graph_control` `continue` with `mode: retry_current_node` runs it; no reset needed. |
 | `failed` | `graph_control` `reset` (clears the failed state, keeps completed specs), then `graph_control` `run` for a single clean launch. `graph_control` `reset` with no `specs` resets only non-completed specs, so `graph_control` `run` resumes at the first pending one — nothing already done is re-implemented. To redo only what failed instead, `graph_control` `continue` with `mode: retry_current_node` is now accepted on a `failed` graph too: it restarts the failed spec at the node it failed on as a directed run (upstream outputs reused) and clears that spec's execution count; `graph_control` `continue` with `mode: skip_next_spec` skips the failed spec directly. |
 | `completed` | `graph_control` `reset` with `{specs:[…]}` to re-open specific specs, then `graph_control` `run`. |
-| `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_set_status`) costs far less than another five rounds. |
+| `failed` with `blocker: null`, last run `pass` | The per-node **iteration budget ran out** (5 — graph-validation rule 7), not a crash. Check the last run's `iteration` before relaunching: the work is usually nearly done and the reviewer already left a precise list, so finishing it by hand and marking the spec `completed` (`spec_edit` `set_status`) costs far less than another five rounds. |
 | `failed` in a queue-driven graph, when only the failed member's tail must be redone | `graph_control` `continue` with `mode: run_from_node` (`node_id=…`, `spec_id=…`) — see *Restarting one member* below. Omit `spec_id` and the failed member is the default. |
 | `failed` on an idea-driven graph (spec-less, run with an `idea`) | `graph_control` `continue` with `mode: retry_current_node` or `mode: run_from_node` resumes that idea run directly — the graph stores the idea it last ran with, `{{spec_content}}` renders it, and the blank bookkeeping spec's node history (so `{{previous_feedback}}` still carries the failure) is kept. No `spec_id` to name. An idea graph that has never run is refused: start it with `graph_control` `run` passing an `idea`. |
 | `failed` with blocker `… failed N time(s) across separate graph executions (limit 3) …` | The per-spec **execution limit** (default 3; genuine verdicts only). `graph_control` `reset` with `{specs:[<spec id>]}` zeroes that spec's count — worktree untouched — then `graph_control` `run`; or give an explicit directive (`graph_control` `run` with `start_node_id`, `graph_control` `continue` with `mode: run_from_node` / `mode: retry_current_node`), which clears it automatically and replies `Execution limit reset for spec '…'`. Automatic re-runs (autorun, cron) never clear it. |
@@ -296,33 +296,33 @@ Two asymmetries worth knowing:
 ## Queues: runtime spec lists the engine runs through a graph
 
 The redesign landed. A graph is now a reusable **graph** (the "team"), and the
-specs it runs come from a standalone backlog (`spec_create` / `spec_list`)
+specs it runs come from a standalone backlog (`spec_edit` `create` / `spec` `list`)
 collected into a **queue** the graph executes in order:
 `graph_control {action: "run", graph_id, queue_id, workdir?}`. Build the graph once (~13 calls), then
 point different queues at it across workdirs — the graph's own bound specs are
 typically empty when it runs a queue. (`pool` is the old name for the same
-thing; `queue_*` tools supersede `graph_pool_*`, and `queue_id` wins over the
+thing; the `queue` tool supersedes `graph_pool_*`, and `queue_id` wins over the
 deprecated `pool_id` argument.)
 
-| Tool | What it does |
+| Action on `queue` | What it does |
 |---|---|
-| `queue_create` | create an empty queue |
-| `queue_add_spec {queue_id, spec_id, group?}` | append a backlog spec; optional `group` shares a warm session (below) |
-| `queue_remove_spec` | drop a spec from the queue |
-| `queue_reorder {queue_id, spec_ids}` | total reorder — pass **every** member exactly once, in the desired order; refused if it would split a group's pending members |
-| `queue_set_group {queue_id, spec_id, group?}` | set or clear (omit `group`) one member's group in place; the member moves next to its group |
-| `queue_list {queue_id?}` | one queue's ordered members, or all queues in summary |
+| `create` | create an empty queue |
+| `add_spec {queue_id, spec_id, group?}` | append a backlog spec; optional `group` shares a warm session (below) |
+| `remove_spec` | drop a spec from the queue |
+| `reorder {queue_id, spec_ids}` | total reorder — pass **every** member exactly once, in the desired order; refused if it would split a group's pending members |
+| `set_group {queue_id, spec_id, group?}` | set or clear (omit `group`) one member's group in place; the member moves next to its group |
+| `list {queue_id?}` | one queue's ordered members, or all queues in summary |
 
-**Warm-context groups.** `group` on `queue_add_spec` makes a spec resume the
+**Warm-context groups.** `group` on `queue` `add_spec` makes a spec resume the
 session of the previous **successfully-completed** sibling in the same group
 instead of analyzing the repo cold — see *Spec Groups* in `SKILL.md`. Group
 only an ordered sequence over the same surface; leave unrelated specs ungrouped.
 A grouped add lands after the group's last pending member. To (re)group an
-existing member, use `queue_set_group` (or `canopy queue group`), not remove and
-re-add. `queue_reorder` keeps each group's pending members contiguous and
+existing member, use `queue` `set_group` (or `canopy queue group`), not remove and
+re-add. `queue` `reorder` keeps each group's pending members contiguous and
 refuses an order that would split one.
 
-**Membership vs. status.** `queue_*` tools change membership only; a spec's
+**Membership vs. status.** `queue` actions change membership only; a spec's
 run status (pending / completed / failed) lives on the spec, so removing and
 re-adding a spec does not re-run an already-completed one — `graph_control` `run` still
 resumes at the first non-completed member.
