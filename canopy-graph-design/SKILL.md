@@ -454,8 +454,15 @@ hundred times:
    true, review}` — every shell command the document runs, every prompt's
    first 3 lines and line count, and the attention marks for dangerous
    shapes — so show that review to your user, then call again with `accept:
-   true` (official documents included; never auto-accept). A single reusable
-   node needs neither hand-building nor a full graph document:
+   true` (official documents included; never auto-accept). A draft from the
+   editor (`canopy graph install draft:<id>` / `graph_install {ref:
+   "draft:<id>"}`, id 26 lowercase base32 characters) is the same flow with
+   two extra rules: it lives 30 minutes and **one** install — the review
+   call's fetch consumes it and the daemon parks that body for `accept:
+   true`, so a refusal or an error means it is gone; ask for a new link
+   rather than retrying — and nobody reviewed it, so the review you show is
+   the user's only check. A single reusable node needs neither hand-building
+   nor a full graph document:
    **`node_install {ref}`** (CLI `canopy node install <ref>`) fetches the node
    document through the same catalogue and ref grammar, under the same
    `accept` gate, then `graph_add_node
