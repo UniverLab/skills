@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.26"
+  version: "3.27"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -354,10 +354,12 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   `spec_id`), or `graph_control` `run` with `start_node_id` for the first spec. It
   reuses the recorded output of every earlier node and refuses, naming the node, when a reachable
   prompt or check needs output that was never recorded, or when an upstream
-  node's latest run failed. An ensemble member is the exception: it is judged
-  by the ensemble's quorum — its join node's run for the spec — so a member
-  that failed while the quorum passed is a satisfied prerequisite, and a
-  failed quorum refuses the run and names the join. On an idea-driven
+  node's latest run failed. A node owned by an ensemble is the exception: it
+  is judged by the ensemble's quorum verdict — its join node's run for the
+  spec — so a member that failed while the quorum passed is a satisfied
+  prerequisite, and a failed quorum refuses the run and names the ensemble.
+  A member that ran again after the last join has no verdict yet, so the run
+  is refused naming the ensemble and its missing verdict. On an idea-driven
   graph (run with an `idea`, no bound specs) the same calls resume the stored
   idea run — `{{spec_content}}` renders the idea the graph last ran with and
   no spec needs naming; an idea graph that has never run is refused, naming
