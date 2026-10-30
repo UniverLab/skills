@@ -262,6 +262,15 @@ while a bound spec is still pending: it fails naming the spec in
 | Node reports success/failure | `graph_complete_node` |
 | Node blocked, needs human | `graph_report_blocker` |
 
+A run keeps the workdir it was launched with — the `run` `workdir` override
+when one was given, else the graph's stored workdir — through every
+`continue` (any mode), scheduled resume and quota auto-resume, and its hooks
+render that workdir in `{{workdir}}` and `CANOPY_HOOK_WORKDIR`. `continue`
+takes an optional `workdir` to move the continued run to another checkout (an
+absolute existing directory; anything else is refused without resuming);
+without it the run's workdir is kept. `graph` `get`/`list` report the run's
+workdir as `run_workdir` when it differs from the stored one.
+
 ---
 
 ## Recovery Matrix (graph status → how to move it)
