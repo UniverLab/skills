@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.24"
+  version: "3.25"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -362,8 +362,10 @@ Loops outlive daemon restarts and PC reboots badly unless you plan for it:
   idea run — `{{spec_content}}` renders the idea the graph last ran with and
   no spec needs naming; an idea graph that has never run is refused, naming
   `graph_control` `run` with an `idea` as the way to start one.
-- A spec that ends `Failed` or `Interrupted` blocks the next spec on that
-  workdir only when its recorded dirty paths overlap the ones dirty now;
+- A spec that ends `Failed` or `Interrupted` blocks the next spec of the same
+  graph — or a member of its active queue run — only when its recorded dirty
+  paths overlap the ones dirty now; records from other graphs and unrelated
+  standalone specs are ignored;
   `Skipped` specs never block, and a record naming files no longer dirty never
   blocks. A spec resuming exactly the dirt its own latest run recorded (the
   restart-recovery case) proceeds without `allow_dirty_start`. Otherwise
