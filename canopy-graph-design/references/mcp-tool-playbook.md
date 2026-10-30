@@ -51,7 +51,7 @@ call can see (graph-validation rule 10).
   in the config — those belong to the installer. The command line equivalent is
   `canopy graph validate <path> [--json]`.
 
-- `graph_edit {action: "install", ref, workdir, name?, overwrite_presets?, accept?}` installs
+- `graph_edit {action: "install", ref, workdir, name?, as?, replace?, overwrite_presets?, accept?}` installs
   a graph published in the catalogue (base `https://graphs.univerlab.org`, the
   `graphs.catalogue_url` setting) in one call. `ref` is `<slug>` for an
   official graph or `<owner>/<repo>/<slug>` for a community one, each with an
@@ -68,22 +68,27 @@ call can see (graph-validation rule 10).
   review to your user and only then call again with `accept: true`** — official
   documents are never exempt, and a document the catalogue removed after a
   community report is refused with the reason and issue. With `accept: true` it
-  installs the bundled presets with `graph_edit` `import`'s refusal rule, and imports
+  installs the bundled presets — stamping each with the ref it came from,
+  updating same-source files in place, refusing ones owned by another source
+  unless `as` renames them or `replace: true` overwrites them — and imports
   through the same all-or-nothing path: always a new graph, a numeric suffix
   when the name is taken. `workdir` must be absolute and exist; `name`
-  overrides the document's name. A local preset file whose content differs
-  refuses the whole install naming the file unless `overwrite_presets: true`.
+  overrides the document's name. A preset file owned by another source refuses
+  the whole install before anything is written, naming the file and both
+  sources, unless `as` renames it (`alice` installs `review` as
+  `alice-review`) or `replace: true` (like `overwrite_presets: true`)
+  overwrites it.
   The response carries the same review plus the new graph id and name, the
   workdir, the presets written, and the agent nodes still without a
   platform/model together with the next command to assign them. The command
   line equivalent is
-  `canopy graph install <ref> [--workdir <dir>] [--name <name>]
-  [--overwrite-presets] [--yes] [--show-prompts] [--json]` (workdir defaults to
+  `canopy graph install <ref> [--workdir <dir>] [--name <name>] [--as <prefix>]
+  [--replace] [--overwrite-presets] [--yes] [--show-prompts] [--json]` (workdir defaults to
   the current directory); the CLI prints the same review, then asks
   `Install <name> from <source>? [y/N]`, refuses without a TTY unless `--yes`,
   and never skips the review.
 
-- `node` `install {ref, overwrite_presets?, accept?}` installs one shareable node
+- `node` `install {ref, as?, replace?, overwrite_presets?, accept?}` installs one shareable node
   document published in the same catalogue (`graphs.catalogue_url`) — `ref`
   is `<slug>` or `<owner>/<repo>/<slug>`, each with an optional `@<ref>`
   suffix. It validates exactly as `graph` `validate` would (a graph document
@@ -93,10 +98,14 @@ call can see (graph-validation rule 10).
   with the same no-silent-overwrite rule as a graph install, and the document
   is written to
   `~/.canopy/nodes/<name>.json`, where it shadows a builtin of the same
-  name. `node` `list` shows installed copies and the builtins embedded in the
-  binary (`implementer`, `cargo-gates`, `reviewer-committer`,
+  name. A name already installed from another catalogue source is refused
+  naming both sources — `as` installs it under another local name (renaming
+  the bundled preset with it), `replace: true` overwrites; reinstalling from
+  the same source updates in place. `node` `list` shows installed copies and the
+  builtins embedded in the binary (`implementer`, `cargo-gates`, `reviewer-committer`,
   `commit-check`, `resilience`, `ensemble-proposers`), each marked
-  `installed` or `builtin`; `node` `remove {name}` deletes an installed copy
+  `installed` or `builtin` with the catalogue entry that installed it;
+  `node` `remove {name}` deletes an installed copy
   (a builtin with no override is refused). `graph_node {action: "add", node:
   "<name>", config_overrides: ...}` is the alternative to `kind` + `config`
   (shallow merge, overrides win); an agent node document carries no harness,
@@ -105,9 +114,9 @@ call can see (graph-validation rule 10).
   "ensemble-proposers", members: [...]}` supplies the shared prompt, member
   count and ensemble shape from the document, but every member still needs
   its own platform. The command line equivalents are `canopy node list
-  [--json]`, `canopy node install <ref> [--overwrite-presets] [--yes]
-  [--show-prompts] [--json]`, and `canopy node remove <name> [--json]` (all
-  local, no daemon).
+  [--json]`, `canopy node install <ref> [--as <name>] [--replace]
+  [--overwrite-presets] [--yes] [--show-prompts] [--json]`, and
+  `canopy node remove <name> [--json]` (all local, no daemon).
 
 ### Building by hand (when there is no document yet)
 

@@ -10,7 +10,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.23"
+  version: "3.24"
   framework: Canopy
   category: graph-orchestration
   last_updated: "2026-10-28"
@@ -475,9 +475,11 @@ hundred times:
    rather than retrying — and nobody reviewed it, so the review you show is
    the user's only check. A single reusable node needs neither hand-building
    nor a full graph document:
-   **`node` `install {ref}`** (CLI `canopy node install <ref>`) fetches the node
-   document through the same catalogue and ref grammar, under the same
-   `accept` gate, then `graph_node
+   **`node` `install {ref, as?, replace?}`** (CLI `canopy node install <ref>`)
+   fetches the node document through the same catalogue and ref grammar,
+   under the same `accept` gate — a name already installed from another
+   source is refused naming both, and `as` installs it under another local
+   name while `replace: true` overwrites — then `graph_node
    {action: "add", node: "<name>", config_overrides: ...}` (or `graph_ensemble
    {action: "add", node: "ensemble-proposers", members: [...]}` for the builtin ensemble,
    whose members still need a platform each) instantiates it — an agent
@@ -519,9 +521,10 @@ refuses the whole import, naming every unknown preset. When you hand a document
 to another machine, bundle its presets and run `graph` `validate`: it refuses a
 `prompt_preset` that is neither bundled nor builtin, so no node of the shared
 document depends on a preset that happens to be installed here. `graph_edit` `install`
-follows the same refusal rule, and is the only graph call that can replace a
-differing local preset on purpose (`overwrite_presets: true`, CLI
-`--overwrite-presets`).
+stamps every preset it writes with its source ref: reinstalling from the same
+source updates in place, while a preset owned by another source is refused
+naming both — renamed with `as`, or replaced on purpose (`replace: true` /
+`overwrite_presets: true`, CLI `--replace` / `--overwrite-presets`).
 
 ### Check nodes
 
