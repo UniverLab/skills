@@ -10,10 +10,10 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "3.27"
+  version: "3.28"
   framework: Canopy
   category: graph-orchestration
-  last_updated: "2026-10-28"
+  last_updated: "2026-10-31"
 ---
 
 # Graph Design
@@ -461,6 +461,12 @@ hundred times:
    `graph` `export` the result so the next one is a single call. Run
    **`graph` `validate`** on any document you did not author, or are about to
    hand to someone else — it runs import's checks without writing anything.
+   Before building, search the catalogue with **`catalogue` `search {q,
+   sort?, page?, limit?}`** — free text over published graphs and nodes
+   (`sort` `top` (default) or `new`, `page` from 1, `limit` default 10
+   max 50 truncates the page); each hit carries kind, slug, `repo`,
+   `official`, stars and description, and the install ref is the bare
+   slug when official, else `repo/slug`.
    A graph already published in the catalogue needs neither document nor
    hand-building: **`graph_edit` `install` with `{ref, workdir, ...}`** (CLI
    `canopy graph install <ref>`) fetches it through graphs.univerlab.org —

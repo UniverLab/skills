@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.7"
+  version: "1.8"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-10-28"
+  last_updated: "2026-10-31"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -34,6 +34,7 @@ verify the live surface (below) before promising an exact call.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
 - `harness` `models` — which CLI platforms and models this machine can actually run.
 - `node` `list` — installed and builtin shareable node documents for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `node` `get` inspects one document.
+- `catalogue` `search` — free-text search over the community graphs catalogue before building your own (`q`, optional `sort`/`page`/`limit`); each hit carries kind, slug, `repo`, `official`, stars and description, and the install ref is the bare slug when official, else `repo/slug`.
 
 If this skill and the live surface disagree, the live surface wins.
 
