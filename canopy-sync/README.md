@@ -4,7 +4,7 @@ Tooling skill for coordinating alongside other Canopy sessions.
 
 The old sync protocol (mission declaration, workspace status, broadcast and
 report-status tools) is retired. This skill teaches what replaced it:
-`session_list` to see every live session, `scheduled_send_create` to wake one
+`session_list` to see every live session, `scheduled_prompts` to wake one
 later, and `intelligence_upsert` / `intelligence_search` to persist and find
 shared findings. Durable history stays readable through
 `intelligence_get_context` and the TUI's activity panel.

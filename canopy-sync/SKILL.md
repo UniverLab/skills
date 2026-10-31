@@ -5,11 +5,11 @@ description: >
   act on a shared workspace: writing files, running builds or tests,
   installing dependencies, or committing. The old multi-agent sync protocol is
   retired; this skill covers what replaced it: session_list,
-  scheduled_send_create, and intelligence_upsert/search.
+  scheduled_prompts, and intelligence_upsert/search.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "2.0"
+  version: "2.1"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
@@ -38,7 +38,7 @@ present. Behavior rules live in `execution-mindset`.
 | You used to | Do this now |
 |---|---|
 | See who else is working | `session_list` — every live session with its id, workdir, name and whether a TUI is attached |
-| Tell another agent to act later | `scheduled_send_create` — schedule a prompt for a session instead of polling it |
+| Tell another agent to act later | `scheduled_prompts` — schedule a prompt for a session instead of polling it |
 | Broadcast a milestone or status | `intelligence_upsert` a fact/session summary, so every future session reads it |
 | Read others' declarations | `intelligence_get_context` at session start, `intelligence_search` for a specific topic |
 

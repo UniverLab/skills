@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.6"
+  version: "1.7"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
@@ -65,7 +65,7 @@ docs, or migrations executed overnight. (Design guidance: `canopy-graph-design`.
 ### 4. Session coordination
 The sync protocol is retired. Parallel sessions coordinate through
 `session_list` (every live session with its id and workdir),
-`scheduled_send_create` (wake a session later instead of polling), and
+`scheduled_prompts` (wake a session later instead of polling), and
 `intelligence_upsert` / `intelligence_search` (persist and find shared
 findings) — so solo sessions still leave a legible history.
 

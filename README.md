@@ -59,7 +59,7 @@ persist facts/patterns/summaries with `intelligence_upsert`.
 
 ### canopy-sync
 Workspace coordination with the retired sync protocol's replacements:
-`session_list`, `scheduled_send_create`, and `intelligence_upsert` /
+`session_list`, `scheduled_prompts`, and `intelligence_upsert` /
 `intelligence_search` — what to do instead of declaring, broadcasting, and
 reporting status.
 
