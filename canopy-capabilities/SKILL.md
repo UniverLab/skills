@@ -9,11 +9,11 @@ description: >
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.8"
+  version: "1.9"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-10-31"
+  last_updated: "2026-11-03"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -74,10 +74,14 @@ findings) — so solo sessions still leave a legible history.
 Live terminals for interactive agents, status semaphores, a prompt builder
 (with scheduled sends), project views with backlog/knowledge/history, and
 live graphs — one dashboard over everything above. A session also has a
-shelf: send a screenshot, chart or render with `session_send_file` (1–10
-absolute image paths per call, 20 MiB each) and it appears in the person's
-TUI with a toast and opens in their system viewer, instead of you printing a
-path they have to hunt for.
+shelf: send any file — a screenshot, chart, render, log or document — with
+`session_send_file` (1–10 absolute paths per call, 20 MiB each) and it
+appears in the person's TUI with a toast and opens in their system viewer,
+instead of you printing a path they have to hunt for. Read a shelf back
+with `session_list_files` (newest first; each item's `origin` says whether
+an `agent` or a `user` sent it) and `session_read_file` (text as UTF-8,
+binary as base64 capped at 1 MiB), so a file the person uploaded from the
+remote web UI over the `shelf_put_*` protocol is yours to inspect.
 
 ### 6. RAG over local documents
 Index a directory of PDFs/documents and query it from any agent — useful for
@@ -101,6 +105,7 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "Ask questions over these papers/docs" | RAG |
 | "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `delivery_action: send_to_session` |
 | "The agent made a screenshot/chart and I can't find it" | Session shelf: `session_send_file`, then the TUI's F1 → Shelf tab |
+| "I uploaded a file from the browser — where is it?" | Session shelf: `session_list_files` for origin `user`, then `session_read_file` |
 | "Which harness/model does each graph use?" | `crew` `assignments` (no prompt text returned) |
 | "Don't use that model/provider right now" | Availability roster (`harness` `roster_set`) |
 
