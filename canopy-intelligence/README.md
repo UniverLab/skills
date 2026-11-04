@@ -13,7 +13,8 @@ globally on hosts that never run Canopy.
 
 Extracted from `execution-mindset` v4.0, which mixed behavior rules with
 Canopy tooling. Behavior lives in [execution-mindset](../execution-mindset/);
-the sync protocol lives in [canopy-sync](../canopy-sync/).
+the sync protocol's replacements (sessions + intelligence) live in
+[canopy-sync](../canopy-sync/).
 
 ## Contents
 

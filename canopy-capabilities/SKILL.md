@@ -3,17 +3,17 @@ name: canopy-capabilities
 description: >
   Use this skill when someone asks what Canopy can do: onboarding a new user,
   answering "what can I do here?", proposing automations for a workspace, or
-  deciding whether a need maps to an agent, a graph, memory, or sync. It gives
+  deciding whether a need maps to an agent, a graph, memory, or a session. It gives
   the capability map plus concrete starter ideas, and teaches how to discover
   the live tool surface instead of trusting a static list.
 license: MIT
 metadata:
   author: jheison.martinez
-  version: "1.1"
+  version: "1.9"
   framework: Canopy
   category: canopy-tooling
   requires: canopy
-  last_updated: "2026-10-14"
+  last_updated: "2026-11-03"
 ---
 
 # Canopy Capabilities: What Can I Do Here?
@@ -32,8 +32,9 @@ verify the live surface (below) before promising an exact call.
 
 - `get_tools(scope="session_start")` — the workspace brief + which MCP tools apply right now.
 - `canopy --help` and `canopy <command> --help` — the CLI surface.
-- `agent_models` — which CLI platforms and models this machine can actually run.
-- `blueprint_list` — ready-made node blueprints for building graphs.
+- `harness` `models` — which CLI platforms and models this machine can actually run.
+- `node` `list` — installed and builtin shareable node documents for building graphs (`graph_node` `add` / `graph_ensemble` `add` with `node:`); `node` `get` inspects one document.
+- `catalogue` `search` — free-text search over the community graphs catalogue before building your own (`q`, optional `sort`/`page`/`limit`); each hit carries kind, slug, `repo`, `official`, stars and description, and the install ref is the bare slug when official, else `repo/slug`.
 
 If this skill and the live surface disagree, the live surface wins.
 
@@ -49,7 +50,7 @@ already know?" before re-deriving anything. (Details: `canopy-intelligence`.)
 ### 2. Background agents (cron / file-watch)
 Any prompt can run on a schedule or fire when files change — on any installed
 CLI platform. An agent can also deliver its prompt into a live interactive
-session (`action: send_to_session`, targeted by session name) instead of
+session (`delivery_action: send_to_session`, targeted by session name) instead of
 spawning a headless CLI; use it when the work belongs in a session someone is
 already watching. Starter ideas: nightly dependency audit, docs drift checker,
 "summarize what changed today", data-pipeline sanity checks on file arrival,
@@ -62,15 +63,25 @@ Runs unattended, survives restarts, schedules its own resumption after CLI
 quota resets. This is the heavy hitter: backlogs of bugfixes, refactors,
 docs, or migrations executed overnight. (Design guidance: `canopy-graph-design`.)
 
-### 4. Multi-agent sync
-Agents declare missions, report status, and broadcast milestones so parallel
-sessions stop colliding in one workspace — and solo sessions leave a legible
-history. (Details: `canopy-sync`.)
+### 4. Session coordination
+The sync protocol is retired. Parallel sessions coordinate through
+`session_list` (every live session with its id and workdir),
+`scheduled_prompts` (wake a session later instead of polling), and
+`intelligence_upsert` / `intelligence_search` (persist and find shared
+findings) — so solo sessions still leave a legible history.
 
 ### 5. Interactive session management (TUI)
 Live terminals for interactive agents, status semaphores, a prompt builder
 (with scheduled sends), project views with backlog/knowledge/history, and
-live graphs — one dashboard over everything above.
+live graphs — one dashboard over everything above. A session also has a
+shelf: send any file — a screenshot, chart, render, log or document — with
+`session_send_file` (1–10 absolute paths per call, 20 MiB each) and it
+appears in the person's TUI with a toast and opens in their system viewer,
+instead of you printing a path they have to hunt for. Read a shelf back
+with `session_list_files` (newest first; each item's `origin` says whether
+an `agent` or a `user` sent it) and `session_read_file` (text as UTF-8,
+binary as base64 capped at 1 MiB), so a file the person uploaded from the
+remote web UI over the `shelf_put_*` protocol is yours to inspect.
 
 ### 6. RAG over local documents
 Index a directory of PDFs/documents and query it from any agent — useful for
@@ -90,11 +101,13 @@ the tagged `<spec>` that decides instead of asking (see `canopy-graph-design`).
 | "I keep re-explaining my codebase" | Intelligence layer (facts/patterns) |
 | "Run X every night / when Y changes" | Background agent (cron / watch) |
 | "Work through this backlog without me" | Specs + queue + graph |
-| "Two agents keep stepping on each other" | Sync protocol |
+| "Two agents keep stepping on each other" | `session_list` to see them, `intelligence_upsert` to share findings |
 | "Ask questions over these papers/docs" | RAG |
-| "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `action: send_to_session` |
-| "Which harness/model does each graph use?" | `graph_crew` (no prompt text returned) |
-| "Don't use that model/provider right now" | Availability roster (`roster_set`) |
+| "Send my agent a prompt at 6am" | Prompt builder scheduled send, or a background agent with `delivery_action: send_to_session` |
+| "The agent made a screenshot/chart and I can't find it" | Session shelf: `session_send_file`, then the TUI's F1 → Shelf tab |
+| "I uploaded a file from the browser — where is it?" | Session shelf: `session_list_files` for origin `user`, then `session_read_file` |
+| "Which harness/model does each graph use?" | `crew` `assignments` (no prompt text returned) |
+| "Don't use that model/provider right now" | Availability roster (`harness` `roster_set`) |
 
 When proposing, be concrete: name the trigger, the platform, the verification
 step, and what "done" looks like. An automation without a deterministic check

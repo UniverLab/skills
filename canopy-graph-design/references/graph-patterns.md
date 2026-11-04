@@ -230,7 +230,8 @@ output and:
 1. repairs transient failures (bad command, missing dep) and reports **pass**, so
    the implement retries;
 2. on quota exhaustion (`"You've hit your session limit · resets <time>"`), parses
-   the time, calls `graph_schedule_autorun { graph_id, at }`, then reports **fail** —
+   the time, calls `graph_control {action: "schedule_autorun", graph_id, at}`,
+   then reports **fail** —
    the spec fails, but the graph wakes itself at exactly that moment;
 3. **cleans the worktree if the dead implement left it dirty.** A quota death can
    land mid-edit; the next attempt would otherwise start on a dirty tree.
@@ -257,7 +258,7 @@ Rules:
 ## Failure modes (field notes)
 
 Real breakages seen running these patterns at scale. The engine is strict about
-graph shape and fails hard, so validate before `graph_run` (checklist in
+graph shape and fails hard, so validate before `graph_control` `run` (checklist in
 `SKILL.md` → "Graph Validation").
 
 ### The `implement <-> review` cycle has no entry node
@@ -276,12 +277,12 @@ If two edges leave the same node, both match a result, and they point at
 **different targets**, edge selection aborts and fails the whole graph — *after* the
 node's work is done, so it's easy to miss in review. Byte-identical duplicates
 (same target and condition) are now deduped instead of fatal, but still dedupe by
-`(from_node, condition)` before calling `graph_add_edge`. A `pass` edge and a `fail`
+`(from_node, condition)` before calling `graph_edge` `add`. A `pass` edge and a `fail`
 edge from the same node are fine.
 
 ### Node `config` sent as a JSON-encoded string
 
-The MCP schema for `graph_add_node`/`graph_update_node` once declared `config` as an
+The MCP schema for `graph_node` `add`/`graph_node` `update` once declared `config` as an
 untyped value, so clients serialized it to a *string*. The node stored fine and
 then died mid-run with `"missing a platform/cli"`. The schema now declares
 `"type": "object"` and serde rejects non-objects at parse time — but if you build
@@ -304,10 +305,11 @@ non-zero with *"You've hit your session limit · resets &lt;time&gt;"* in its `s
 - **Big spec → long run → burnt quota.** This is the real reason to keep specs
   small. It is not a graph bug.
 - **Completed specs are skipped on relaunch**, so recovery is cheap: reset the graph
-  (and the stalled spec) status and `graph_run` again; it resumes at the first
+  (and the stalled spec) status and `graph_control` `run` again; it resumes at the first
   non-completed spec.
 - **Don't poll with a recurring cron.** Use pattern 8: a resilience node parses the
-  reset time and calls `graph_schedule_autorun { graph_id, at }`, which wakes the
+  reset time and calls `graph_control {action: "schedule_autorun", graph_id, at}`,
+  which wakes the
   scheduler exactly once at that instant. A blind cron retry wastes attempts
   against the per-node iteration budget.
 - Spreading implement and review across different platforms (pattern 5) means one
@@ -325,8 +327,8 @@ worktree.
 ### A daemon restart orphans the running graph
 
 The graph row stays `running` with no process behind it. Scheduled autoruns cannot
-rescue it (`is_fireable()` excludes `Running`). Recover with `graph_pause` →
-`graph_continue(retry_current_node)`; the spec's own `running` status makes the
+rescue it (`is_fireable()` excludes `Running`). Recover with `graph_control` `pause` →
+`continue` with `mode: retry_current_node`; the spec's own `running` status makes the
 engine resume at its last node, so nothing is re-implemented. See the Recovery
 Matrix in `mcp-tool-playbook.md`.
 
