@@ -10,7 +10,7 @@ description: >
   is stuck. Do NOT use it for concrete answers: one error, one term, one
   command, "what does this function do", syntax or how-to questions. Those
   are answered directly.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.1"

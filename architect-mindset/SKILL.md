@@ -8,7 +8,7 @@ description: >
   records that other agents (or cheaper models) will execute. It applies
   systemic thinking at the design level; for code-level structure use
   code-engineering instead.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.3"

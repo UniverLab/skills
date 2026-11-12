@@ -6,7 +6,7 @@ description: >
   deciding whether a need maps to an agent, a graph, memory, or a session. It gives
   the capability map plus concrete starter ideas, and teaches how to discover
   the live tool surface instead of trusting a static list.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.9"

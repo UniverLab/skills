@@ -9,7 +9,7 @@ description: >
   "texforge pdf", "texforge spell", "texforge doctor", creating a thesis or academic document, compiling
   LaTeX without installing TeX Live, using tectonic as a LaTeX engine, spell-checking a LaTeX document,
   project.toml configuration, or any workflow involving .tex files and the texforge tool.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.7"

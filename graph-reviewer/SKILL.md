@@ -6,7 +6,7 @@ description: >
   Apply it when a graph is about to run for the first time, after reshaping a
   graph, when a queue has been assembled or extended, or when a graph is
   burning budget without finishing work. It audits; it does not implement.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.3"

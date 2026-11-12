@@ -6,7 +6,7 @@ description: >
   installing dependencies, or committing. The old multi-agent sync protocol is
   retired; this skill covers what replaced it: session_list,
   scheduled_prompts, and intelligence_upsert/search.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "2.1"

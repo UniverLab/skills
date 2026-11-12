@@ -7,7 +7,7 @@ description: >
   scenes. Activate when the user mentions "demo capture", "demo record", "demo export", "demo edit",
   demo.toml, macro.raw.toml, recording a terminal demo, gif/mp4 of a terminal, DemoStage, or a
   multi-scene terminal+browser demo.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "0.2"

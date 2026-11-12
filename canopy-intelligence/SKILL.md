@@ -6,7 +6,7 @@ description: >
   the Project Intelligence Layer (PIL): when to call get_tools and
   intelligence_get_context, and when to register facts and patterns with
   intelligence_upsert so future sessions inherit what you learned.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "1.1"

@@ -6,7 +6,7 @@ description: >
   useful for multi-file changes, boundary design, pattern selection, naming,
   guard-clause refactors, dependency management, and maintainability decisions
   in any language.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "2.0"

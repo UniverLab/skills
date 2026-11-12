@@ -120,7 +120,7 @@ Each skill follows this structure:
 skill-name/
 ├── SKILL.md          # Main definition
 ├── README.md         # Full documentation
-├── LICENSE           # MIT License
+├── LICENSE           # Apache-2.0
 └── references/       # Reference documentation, loaded on demand
     ├── *.md          # Practical guides and examples
 ```
@@ -168,7 +168,7 @@ Contributions welcome! Follow these guidelines:
 1. **One skill per directory**
 2. **Clear documentation** — Explain when and how to use the skill
 3. **Practical examples** — Include code and real scenarios
-4. **MIT License** — All contributions must be MIT
+4. **Apache-2.0** — All contributions are licensed under Apache-2.0
 5. **Progressive disclosure** — Keep `SKILL.md` focused, move optional detail to `references/`
 6. **Narrow scope** — a skill that only applies next to a binary or MCP server declares it with `requires`
 

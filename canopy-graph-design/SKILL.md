@@ -7,7 +7,7 @@ description: >
   flows with approvals and retries. Prefer reusable graph patterns over
   one-off pipelines, and build against the MCP graph tools that actually exist
   in the environment.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "3.28"

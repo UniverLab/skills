@@ -9,7 +9,7 @@ description: >
   readings lead to different work, resolves problems by locating the first
   divergence, searches instead of guessing on things that change, recaps to
   catch drift, and verifies before reporting.
-license: MIT
+license: Apache-2.0
 metadata:
   author: jheison.martinez
   version: "6.1"
