@@ -1,5 +1,10 @@
 # Changelog - texforge Skill
 
+## Version 2.0 (2026-11-17)
+
+### Changed
+- The skill now lives in the texforge binary (`texforge skill`, texforge 1.0). `SKILL.md` is reduced to a pointer with the download link; the command reference moved to the binary so it always matches the installed version
+
 ## Version 1.6 (2026-06-12)
 
 ### Changed

@@ -1,26 +1,8 @@
 # texforge skill
 
-Agent skill for the [texforge](https://github.com/UniverLab/texforge) CLI — a self-contained LaTeX to PDF compiler with no external dependencies.
+Deprecated as a standalone skill. Since texforge 1.0 the agent skill ships inside the
+[texforge](https://github.com/UniverLab/texforge) binary: run `texforge skill` to print it.
+`SKILL.md` here is a short pointer that sends agents there, with the download link.
 
-## What it does
-
-Teaches the agent how to use the texforge CLI to:
-
-- Create LaTeX projects from templates (`texforge new`) or interactively (`texforge init`)
-- Migrate existing LaTeX projects (`texforge init` — auto-detected)
-- Compile `.tex` files to PDF (`texforge build`)
-- Watch for changes and rebuild automatically (`texforge build --watch`)
-- Format and lint documents (`texforge fmt`, `texforge check`)
-- Manage templates (`texforge template`)
-- Manage global configuration (`texforge config`)
-
-## Resources
-
-- **CLI**: [github.com/UniverLab/texforge](https://github.com/UniverLab/texforge)
+- **CLI and downloads**: [github.com/UniverLab/texforge/releases/latest](https://github.com/UniverLab/texforge/releases/latest)
 - **Templates**: [github.com/UniverLab/texforge-templates](https://github.com/UniverLab/texforge-templates)
-
-## Install skill
-
-```bash
-npx skills add https://github.com/UniverLab/skills --skill texforge
-```

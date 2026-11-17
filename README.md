@@ -83,6 +83,8 @@ binary is available.
 ### texforge
 CLI to compile LaTeX documents to PDF without TeX Live, MiKTeX, or external
 dependencies. Uses tectonic as the internal engine. Requires `texforge`.
+From texforge 1.0 the full skill ships in the binary (`texforge skill`); this
+entry is a pointer to it.
 
 ### demostage
 CLI for making terminal demos as reproducible code. Capture, record, export
